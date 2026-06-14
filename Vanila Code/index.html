@@ -1,0 +1,2285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Fabric Shrinkage Studio</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ========== PREMIUM APP THEME & LAYOUT ========== */
+        :root {
+            --primary: #1976d2;
+            --primary-dark: #1565c0;
+            --secondary: #f5f7fa;
+            --bg-color: #eef2f6;
+            --text-main: #333;
+            --text-light: #666;
+            --border-color: #e0e6ed;
+            --danger: #d32f2f;
+            --danger-light: #ffebee;
+            --success: #4CAF50;
+            --info-light: #e3f2fd;
+            --group-a: #c8e6c9;
+            --group-b: #fff9c4;
+            --group-c: #ffccbc;
+            --group-d: #e1f5fe;
+            --group-e: #f3e5f5;
+            --group-f: #ffeb3b;
+            --group-g: #b2dfdb;
+            --group-h: #ffe0b2;
+            --group-i: #d7ccc8;
+            --group-j: #cfd8dc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: #cbd5e1; 
+            color: var(--text-main); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        .app-container {
+            display: flex;
+            width: 100%;
+            max-width: 1350px; 
+            height: 90vh;      
+            background: var(--bg-color);
+            border-radius: 16px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border: 1px solid white;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar { width: 250px; background: white; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 10; }
+        .logo { padding: 25px 20px; font-size: 18px; font-weight: 800; color: var(--primary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;}
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 15px 25px; display: flex; align-items: center; gap: 15px; color: var(--text-light); cursor: pointer; transition: 0.2s; font-weight: 500; }
+        .nav-item:hover { background: var(--secondary); color: var(--primary); }
+        .nav-item.active { background: var(--info-light); color: var(--primary); border-right: 4px solid var(--primary); }
+
+        /* Main Content Area */
+        .main-content { flex: 1; overflow-y: auto; padding: 30px; position: relative;}
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .page-header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .page-header h1 { font-size: 24px; color: var(--text-main); }
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-success:hover { background: #388E3C; }
+        .btn-outline { background: white; color: var(--text-main); border: 1px solid #ccc; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-outline:hover { background: #f0f0f0; }
+        .btn-danger { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-danger:hover { background: #b71c1c; }
+
+        /* Tabs */
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn { padding: 10px 25px; border: 2px solid transparent; background: transparent; font-weight: 700; color: var(--text-light); cursor: pointer; border-radius: 6px; transition: 0.2s; font-size: 14px; }
+        .tab-btn:hover { background: var(--secondary); color: var(--primary); }
+        .tab-btn.active { background: var(--info-light); color: var(--primary); border: 2px solid var(--primary); }
+        .calc-mode { display: none; animation: fadeIn 0.3s ease; }
+        .calc-mode.active { display: block; }
+
+        /* Dashboard Grids */
+        .calc-grid { display: grid; grid-template-columns: 1fr 550px; gap: 30px; }
+        .quick-math-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text-main); border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+
+        /* Form Inputs */
+        .input-group { margin-bottom: 15px; width: 100%; }
+        .input-group label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 5px; font-weight: 600; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s;}
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); }
+        .input-row { display: flex; gap: 15px; }
+        .input-row .input-group { flex: 1; }
+
+        /* RESULTS GROUPING STYLES */
+        .toolbar-container { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .results-group { margin-bottom: 35px; }
+        .group-title { font-size: 18px; font-weight: 800; color: var(--primary); border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .result-card { background: white; border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden; transition: 0.2s; padding: 15px; display: flex; flex-direction: column; position: relative; }
+        .result-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+        .result-card.group-card { border-left: 5px solid var(--primary); }
+        .result-card.shipment-card { border-left: 5px solid var(--success); }
+        .swatch-title { font-weight: bold; font-size: 15px; margin-bottom: 5px; color: var(--text-main); }
+        .swatch-type { font-size: 12px; color: var(--text-light); margin-bottom: 10px; display: flex; flex-direction: column; gap: 3px;}
+        .shrink-data-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; background: var(--secondary); padding: 8px; border-radius: 6px;}
+        .date-stamp { font-size: 11px; color: #999; margin-top: 12px; text-align: center; font-style: italic;}
+        .delete-icon { position: absolute; top: 10px; right: 10px; color: #ccc; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .delete-icon:hover { color: var(--danger); }
+        .expand-group { cursor: pointer; color: var(--primary); font-size: 13px; margin-top: 10px; text-align: center; }
+        .group-rolls-table { width: 100%; margin-top: 10px; font-size: 11px; border-collapse: collapse; display: none; }
+        .group-rolls-table.show { display: table; }
+        .group-rolls-table th { background: var(--secondary); padding: 4px; }
+        .group-rolls-table td { padding: 4px; border-bottom: 1px solid #eee; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; overflow-y: auto;}
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 400px; max-width: 90%; margin: auto; max-height: 80vh; overflow-y: auto; }
+
+        /* INCORPORATED SHRINKAGE CONTROL STYLES */
+        .shrinkage-preview { background: #f5f7fa; border-radius: 8px; margin-bottom: 20px; padding: 30px; display: flex; flex-direction: column; align-items: center; }
+        .visualizer-wrapper { display: grid; grid-template-columns: 30px 500px; grid-template-rows: 500px 30px; gap: 15px; align-items: center; justify-items: center; margin-bottom: 20px; }
+        .preview-box { width: 500px; height: 500px; background: linear-gradient(45deg, #e3f2fd 25%, transparent 25%), linear-gradient(-45deg, #e3f2fd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e3f2fd 75%), linear-gradient(-45deg, transparent 75%, #e3f2fd 75%); background-size: 20px 20px; position: relative; border: 2px solid var(--primary); border-radius: 4px; grid-column: 2; grid-row: 1; overflow: hidden; }
+        .original-outline { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 2px dashed rgba(0,0,0,0.2); pointer-events: none; width: 500px; height: 500px; }
+        .shrink-label { position: absolute; font-weight: 800; font-size: 14px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 12px; border: 2px solid currentColor; white-space: nowrap; pointer-events: none; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        #widthLabel { writing-mode: vertical-rl; letter-spacing: 1px; }
+        #lengthLabel { writing-mode: horizontal-tb; }
+        .axis-label { font-size: 13px; font-weight: 800; color: #666; display: flex; align-items: center; justify-content: space-between; }
+        .x-axis-label { width: 500px; grid-column: 2; grid-row: 2; }
+        .y-axis-label { width: 500px; transform: rotate(-90deg); grid-column: 1; grid-row: 1; }
+        .preview-label-footer { font-size: 13px; color: #666; text-align: center;}
+        .shrinkage-indicator { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-left: 5px; }
+        
+        /* Quick Math Bar Visualizers */
+        .qm-visualizer-container { width: 100%; height: 60px; border: 2px solid var(--primary); border-radius: 6px; position: relative; margin-top: 30px; background: var(--info-light); overflow: hidden; }
+        .qm-visualizer-bar { height: 100%; width: 0%; background: rgba(211, 47, 47, 0.75); border-right: 3px solid var(--danger); transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-weight: bold; font-size: 12px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);}
+
+        .unit-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .unit-selector label { font-weight: 600; color: var(--text-light); }
+
+        /* Advanced Test Table & Roll Table */
+        .advanced-test-table { width: 100%; border-collapse: collapse; margin-bottom: 20px;}
+        .advanced-test-table th, .advanced-test-table td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; }
+        .advanced-test-table th { background: #f0f0f0; font-size: 13px; color: var(--text-main); }
+        .advanced-test-table input { width: 80px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        
+        /* Roll Table */
+        .roll-table-container { overflow-x: auto; margin-bottom: 20px; }
+        .roll-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 800px; }
+        .roll-table th, .roll-table td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; }
+        .roll-table th { background: #f0f0f0; }
+        .roll-table input { width: 60px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .roll-table .group-a { background-color: var(--group-a); }
+        .roll-table .group-b { background-color: var(--group-b); }
+        .roll-table .group-c { background-color: var(--group-c); }
+        .roll-table .group-d { background-color: var(--group-d); }
+        .roll-table .group-e { background-color: var(--group-e); }
+        .roll-table .group-f { background-color: var(--group-f); }
+        .roll-table .group-g { background-color: var(--group-g); }
+        .roll-table .group-h { background-color: var(--group-h); }
+        .roll-table .group-i { background-color: var(--group-i); }
+        .roll-table .group-j { background-color: var(--group-j); }
+
+        /* Print Container - Hidden by default */
+        #print-report-container { display: none; }
+
+        @media print {
+            body { 
+                background: white; 
+                height: auto !important; 
+                align-items: flex-start; 
+                margin: 0; 
+                padding: 10px;
+                overflow: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* PRINT MODE: DATABASE REPORT */
+            body.print-report-mode .app-container { display: none !important; }
+            body.print-report-mode #print-report-container { 
+                display: block !important; 
+                width: 100%; 
+                max-width: 1000px; 
+                margin: 0 auto; 
+                color: #000;
+                font-family: Arial, sans-serif;
+            }
+
+            /* PRINT MODE: CALCULATOR UI */
+            body:not(.print-report-mode) #print-report-container { display: none !important; }
+            body:not(.print-report-mode) .app-container { 
+                display: block !important;
+                box-shadow: none;
+                border: none;
+                height: auto;
+                overflow: visible !important;
+            }
+            body:not(.print-report-mode) .sidebar { display: none !important; }
+            body:not(.print-report-mode) .main-content { padding: 0; overflow: visible !important; }
+            body:not(.print-report-mode) .page-header button { display: none !important; }
+            body:not(.print-report-mode) .tabs-container { display: none !important; }
+            body:not(.print-report-mode) .calc-btn-container { display: none !important; }
+            body:not(.print-report-mode) .calc-grid, body:not(.print-report-mode) .quick-math-grid { display: block; }
+            body:not(.print-report-mode) .card { margin-bottom: 20px; page-break-inside: avoid; }
+
+            /* SHARED PRINT REPORT STYLES */
+            .print-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+            .print-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 11px; }
+            .print-table th, .print-table td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+            .print-table th { background: #f0f0f0; font-weight: bold; }
+            .print-danger { color: #d32f2f !important; font-weight: bold; }
+            .print-success { color: #2e7d32 !important; font-weight: bold; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="logo"><i class="fas fa-layer-group"></i> ShrinkStudio</div>
+            <div class="nav-menu">
+                <div class="nav-item active" onclick="switchView('calculator', this)"><i class="fas fa-calculator"></i> Calculator</div>
+                <div class="nav-item" onclick="switchView('results', this)"><i class="fas fa-clipboard-list"></i> Shrinkage Results</div>
+                <div class="nav-item" onclick="triggerSmartPrint()"><i class="fas fa-print"></i> Print Report</div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            
+            <section id="view-calculator" class="view-section active">
+                <div class="page-header">
+                    <h1 id="dashboard-title">Fabric Shrinkage Calculator</h1>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" class="btn-outline" id="cancel-edit-btn" style="display:none; color: var(--text-main);" onclick="cancelEdit()">Cancel Edit</button>
+                        <button type="button" class="btn-outline" onclick="resetAllControls()">Clear All</button>
+                        <button type="button" class="btn-success" id="main-save-btn" onclick="openSaveModal()"><i class="fas fa-save"></i> Save Result</button>
+                    </div>
+                </div>
+
+                <div class="tabs-container">
+                    <button type="button" class="tab-btn active" onclick="switchCalcMode('shrinkage', this)"><i class="fas fa-ruler-combined"></i> 1. Measurement Shrinkage</button>
+                    <button type="button" class="tab-btn" onclick="switchCalcMode('quickmath', this)"><i class="fas fa-bolt"></i> 2. Quick Math</button>
+                    <button type="button" class="tab-btn" onclick="switchCalcMode('advanced', this)"><i class="fas fa-flask"></i> 3. Advanced Multi-Sample</button>
+                    <button type="button" class="tab-btn" onclick="switchCalcMode('rollmgr', this)"><i class="fas fa-layer-group"></i> 4. Multi-Roll Mgr</button>
+                </div>
+
+                <div id="calc-mode-shrinkage" class="calc-mode active">
+                    <!-- existing shrinkage tab content unchanged -->
+                    <div class="calc-grid">
+                        <div class="card">
+                            <div class="card-title">
+                                <span>1. Measurement Data</span>
+                                <div class="unit-toggle-wrap">
+                                    <select id="unit-select" onchange="updateUnits()" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: var(--primary); outline: none;">
+                                        <option value="inches" selected>inches</option>
+                                        <option value="cm">cm</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label><i class="fas fa-water" style="color: var(--primary);"></i> Wash Process</label>
+                                    <select id="calc-wash" onchange="handleSmartWashSelection()" style="border-color: var(--primary); font-weight: 500;">
+                                        <option value="">-- Select a Process --</option>
+                                        <optgroup label="Standard Washes">
+                                            <option value="Raw Wash / Rinse">Raw Wash / Rinse</option>
+                                            <option value="Normal Machine Wash">Normal Machine Wash</option>
+                                            <option value="Silicone / Softener Wash">Silicone / Softener Wash</option>
+                                        </optgroup>
+                                        <optgroup label="Abrasion & Stone Washes">
+                                            <option value="Stone Wash">Stone Wash</option>
+                                            <option value="Enzyme Wash">Enzyme Wash</option>
+                                            <option value="Enzyme Stone Wash">Enzyme Stone Wash</option>
+                                            <option value="Sand Wash">Sand Wash</option>
+                                        </optgroup>
+                                        <optgroup label="Chemical & Distressed">
+                                            <option value="Acid Wash">Acid Wash</option>
+                                            <option value="Bleach Wash">Bleach Wash</option>
+                                            <option value="Snow Wash">Snow Wash</option>
+                                            <option value="Mineral Wash">Mineral Wash</option>
+                                            <option value="Vintage / Destroy Wash">Vintage / Destroy Wash</option>
+                                        </optgroup>
+                                        <optgroup label="Garment Dye Processes (High Heat)">
+                                            <option value="Pigment Dye">Pigment Dye</option>
+                                            <option value="Reactive Dye">Reactive Dye</option>
+                                            <option value="Sulfur Dye">Sulfur Dye</option>
+                                            <option value="Direct Dye">Direct Dye</option>
+                                            <option value="Tie Dye / Dip Dye">Tie Dye / Dip Dye</option>
+                                        </optgroup>
+                                        <option value="Other">Other (Custom Entry)...</option>
+                                    </select>
+                                    <input type="text" id="calc-wash-custom" placeholder="Type your custom wash/dye here..." style="display:none; margin-top: 10px; border-color: var(--success);">
+                                    
+                                    <div id="smart-wash-tip" style="display: none; margin-top: 10px; font-size: 12px; padding: 10px; background: #fff3e0; border-left: 3px solid #ff9800; color: #e65100; border-radius: 4px; line-height: 1.4;">
+                                        <i class="fas fa-lightbulb"></i> <span id="smart-tip-text"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Temperature</label>
+                                    <input type="text" id="calc-temp" placeholder="e.g. 40°C or Cold">
+                                </div>
+                                <div class="input-group">
+                                    <label>Duration</label>
+                                    <input type="text" id="calc-duration" placeholder="e.g. 45 mins">
+                                </div>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+                            <h4 style="margin: 15px 0; color: var(--primary); border-bottom: 2px solid var(--info-light); padding-bottom: 8px;">
+                                <i class="fas fa-ruler-combined"></i> Step 1: Before Wash (Original)
+                            </h4>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label style="color: var(--primary); font-weight: 700;">Original Length [<span class="unit-label">inches</span>]</label>
+                                    <input type="number" id="calc-bw-l" placeholder="e.g. 20" style="border-color: #bbdefb; background-color: #f8fbff;">
+                                </div>
+                                <div class="input-group">
+                                    <label style="color: var(--primary); font-weight: 700;">Original Width [<span class="unit-label">inches</span>]</label>
+                                    <input type="number" id="calc-bw-w" placeholder="e.g. 20" style="border-color: #bbdefb; background-color: #f8fbff;">
+                                </div>
+                            </div>
+
+                            <h4 style="margin: 15px 0; color: var(--danger); border-bottom: 2px solid var(--danger-light); padding-bottom: 8px;">
+                                <i class="fas fa-tint"></i> Step 2: After Wash (Result)
+                            </h4>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label style="color: var(--danger); font-weight: 700;">Washed Length [<span class="unit-label">inches</span>]</label>
+                                    <input type="number" id="calc-aw-l" placeholder="e.g. 18" style="border-color: #ffcdd2; background-color: #fffafb;">
+                                </div>
+                                <div class="input-group">
+                                    <label style="color: var(--danger); font-weight: 700;">Washed Width [<span class="unit-label">inches</span>]</label>
+                                    <input type="number" id="calc-aw-w" placeholder="e.g. 22" style="border-color: #ffcdd2; background-color: #fffafb;">
+                                </div>
+                            </div>
+
+                            <div class="calc-btn-container" style="margin-top: 25px;">
+                                <button type="button" id="calc-btn" class="btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="triggerCalculation()">
+                                    <i class="fas fa-cog" id="calc-gear"></i> Calculate Shrinkage
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">2. Pattern Shrinkage Control</div>
+                            
+                            <div class="shrinkage-preview">
+                                
+                                <div class="visualizer-wrapper">
+                                    <div class="axis-label y-axis-label">
+                                        <i class="fas fa-long-arrow-alt-left"></i> 
+                                        <span>Widthwise Grain (W)</span> 
+                                        <i class="fas fa-long-arrow-alt-right"></i>
+                                    </div>
+                                    
+                                    <div class="preview-box" id="previewBox">
+                                        <div class="original-outline" id="originalOutline"></div>
+                                        <div id="scaledPreview" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(25, 118, 210, 0.7); border: 2px solid var(--primary); border-radius: 4px; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); width: 500px; height: 500px;"></div>
+                                        <div id="lengthLabel" class="shrink-label" style="color:#666; border-color:#ccc;">L= 0%</div>
+                                        <div id="widthLabel" class="shrink-label" style="color:#666; border-color:#ccc;">W= 0%</div>
+                                    </div>
+
+                                    <div class="axis-label x-axis-label">
+                                        <i class="fas fa-long-arrow-alt-left"></i> 
+                                        <span>Lengthwise Grain (L)</span> 
+                                        <i class="fas fa-long-arrow-alt-right"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="preview-label-footer">
+                                    <span style="text-decoration: line-through;">Original Size</span> vs <strong>After Wash Size</strong> 
+                                    <span id="scaleIndicator" class="shrinkage-indicator" style="background: #F5F5F5;">0%</span>
+                                </div>
+                            </div>
+
+                            <div class="results-box" style="border: 2px solid var(--danger); border-radius: 8px; padding: 20px; background: #fffafb; margin-top: 15px; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.1);">
+                                <h4 style="color: var(--danger); margin-bottom: 20px; text-align: center; border-bottom: 1px solid #ffcdd2; padding-bottom: 10px; font-size: 16px;">
+                                   <i class="fas fa-percentage"></i> Calculated Results
+                                </h4>
+                                
+                                <div style="display: flex; justify-content: space-around; align-items: center;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 13px; color: var(--text-light); font-weight: 700; margin-bottom: 5px;">LENGTH (Horizontal)</div>
+                                        <div id="lengthDisplay" style="font-size: 28px; font-weight: 900; color: var(--text-main);">0.0%</div>
+                                        <div id="lengthStatus" style="font-size: 12px; font-weight: bold; color: var(--text-light);">No Change</div>
+                                    </div>
+                                    
+                                    <div style="width: 2px; height: 50px; background: #ffcdd2;"></div>
+                                    
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 13px; color: var(--text-light); font-weight: 700; margin-bottom: 5px;">WIDTH (Vertical)</div>
+                                        <div id="widthDisplay" style="font-size: 28px; font-weight: 900; color: var(--text-main);">0.0%</div>
+                                        <div id="widthStatus" style="font-size: 12px; font-weight: bold; color: var(--text-light);">No Change</div>
+                                    </div>
+                                </div>
+                                
+                                <input type="hidden" id="widthInput" value="0">
+                                <input type="hidden" id="lengthInput" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="calc-mode-quickmath" class="calc-mode">
+                    <!-- existing quick math tab unchanged -->
+                    <div class="quick-math-grid">
+                        <div class="card">
+                            <div class="card-title"><i class="fas fa-balance-scale"></i> X is what percentage of Y?</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 30px;">
+                                <input type="number" id="qm2-x" placeholder="X" oninput="calculateQM2()" class="pm-input" style="width: 120px; padding: 15px; font-size: 18px;">
+                                <span style="font-weight: 600; color: var(--text-light); font-size: 14px;">is what % of</span>
+                                <input type="number" id="qm2-y" placeholder="Y" oninput="calculateQM2()" class="pm-input" style="width: 120px; padding: 15px; font-size: 18px; border-color: var(--primary);">
+                            </div>
+                            <div style="text-align: center; margin-top: 40px;">
+                                <div style="font-size: 12px; color: var(--text-light); font-weight: bold; letter-spacing: 1px;">ANSWER</div>
+                                <div id="qm2-ans" style="font-size: 52px; font-weight: 900; color: var(--danger); margin-top: 5px;">0%</div>
+                            </div>
+                            <div class="qm-visualizer-container">
+                                <div id="qm2-bar" class="qm-visualizer-bar"><span id="qm2-bar-text" style="display:none;">%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title"><i class="fas fa-percentage"></i> What is X percentage of Y?</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 30px;">
+                                <span style="font-weight: 600; color: var(--text-light); font-size: 14px;">What is</span>
+                                <input type="number" id="qm3-x" placeholder="X (%)" oninput="calculateQM3()" class="pm-input" style="width: 120px; padding: 15px; font-size: 18px;">
+                                <span style="font-weight: 600; color: var(--text-light); font-size: 14px;">% of</span>
+                                <input type="number" id="qm3-y" placeholder="Y" oninput="calculateQM3()" class="pm-input" style="width: 120px; padding: 15px; font-size: 18px; border-color: var(--primary);">
+                            </div>
+                            <div style="text-align: center; margin-top: 40px;">
+                                <div style="font-size: 12px; color: var(--text-light); font-weight: bold; letter-spacing: 1px;">ANSWER</div>
+                                <div id="qm3-ans" style="font-size: 52px; font-weight: 900; color: var(--danger); margin-top: 5px;">0</div>
+                            </div>
+                            <div class="qm-visualizer-container">
+                                <div id="qm3-bar" class="qm-visualizer-bar"><span id="qm3-bar-text" style="display:none;">%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="calc-mode-advanced" class="calc-mode">
+                    <!-- existing advanced tab unchanged -->
+                    <div class="card" style="max-width: 900px; margin: 0 auto;">
+                        <h2 style="margin-bottom: 10px; color: var(--primary); font-size: 20px;">Advanced Multi-Sample Average Test</h2>
+                        <p style="font-size: 13px; color: var(--text-light); margin-bottom: 25px;">Enter up to 3 samples to calculate true roll average shrinkage. <em>Fill Row #1 to auto-fill original dimensions for #2 and #3.</em></p>
+                        
+                        <table class="advanced-test-table">
+                            <thead>
+                                <tr>
+                                    <th>Sample</th>
+                                    <th>Before Length</th>
+                                    <th>Before Width</th>
+                                    <th>After Length</th>
+                                    <th>After Width</th>
+                                    <th>Shrink L%</th>
+                                    <th>Shrink W%</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adv-table-body">
+                                <tr>
+                                    <td><strong>#1 (Left)</strong></td>
+                                    <td><input type="number" id="adv-bL1" oninput="calcAdvRow(1)"></td>
+                                    <td><input type="number" id="adv-bW1" oninput="calcAdvRow(1)"></td>
+                                    <td><input type="number" id="adv-aL1" oninput="calcAdvRow(1)"></td>
+                                    <td><input type="number" id="adv-aW1" oninput="calcAdvRow(1)"></td>
+                                    <td id="adv-resL1">-</td>
+                                    <td id="adv-resW1">-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>#2 (Center)</strong></td>
+                                    <td><input type="number" id="adv-bL2" oninput="calcAdvRow(2)"></td>
+                                    <td><input type="number" id="adv-bW2" oninput="calcAdvRow(2)"></td>
+                                    <td><input type="number" id="adv-aL2" oninput="calcAdvRow(2)"></td>
+                                    <td><input type="number" id="adv-aW2" oninput="calcAdvRow(2)"></td>
+                                    <td id="adv-resL2">-</td>
+                                    <td id="adv-resW2">-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>#3 (Right)</strong></td>
+                                    <td><input type="number" id="adv-bL3" oninput="calcAdvRow(3)"></td>
+                                    <td><input type="number" id="adv-bW3" oninput="calcAdvRow(3)"></td>
+                                    <td><input type="number" id="adv-aL3" oninput="calcAdvRow(3)"></td>
+                                    <td><input type="number" id="adv-aW3" oninput="calcAdvRow(3)"></td>
+                                    <td id="adv-resL3">-</td>
+                                    <td id="adv-resW3">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="background: var(--info-light); padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--primary);">
+                            <div style="font-weight: 800; font-size: 14px; margin-bottom: 10px; color: var(--primary-dark);">AVERAGE SHRINKAGE</div>
+                            <div style="display: flex; justify-content: space-around; font-size: 18px; font-weight: bold;">
+                                <span>L: <span id="adv-avgL">0.0%</span></span>
+                                <span>W: <span id="adv-avgW">0.0%</span></span>
+                            </div>
+                        </div>
+
+                        <div style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                            <h4 style="margin-bottom: 15px; color: var(--text-main);"><i class="fas fa-cut"></i> Pattern Cutting Adjustment</h4>
+                            <p style="font-size: 12px; color: var(--text-light); margin-bottom: 15px;">Given your average shrinkage, enter your <strong>desired finished dimension</strong> to find out how large you need to cut the pattern.</p>
+                            
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Desired Finished Length</label>
+                                    <input type="number" id="pat-desired-L" placeholder="e.g. 32" oninput="calcPatternAdjust()" style="width: 100%;">
+                                    <div style="margin-top: 8px; font-size: 13px;">Cut Length: <strong id="pat-cut-L" style="color:var(--danger)">-</strong></div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Desired Finished Width</label>
+                                    <input type="number" id="pat-desired-W" placeholder="e.g. 20" oninput="calcPatternAdjust()" style="width: 100%;">
+                                    <div style="margin-top: 8px; font-size: 13px;">Cut Width: <strong id="pat-cut-W" style="color:var(--danger)">-</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: auto; display:flex;">
+                            <button type="button" class="btn-primary" style="flex:1; padding: 15px; font-size: 16px;" onclick="transferAvgToMain()">Apply Average to Main Measurement Dashboard</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENHANCED TAB: Multi-Roll Manager with new features -->
+                <div id="calc-mode-rollmgr" class="calc-mode">
+                    <div class="card" style="max-width: 1100px; margin: 0 auto;">
+                        <h2 style="margin-bottom: 10px; color: var(--primary);">Multi-Roll Shipment Manager</h2>
+                        <p style="font-size: 13px; color: var(--text-light); margin-bottom: 15px;">Enter measurements for each roll. Shrinkage percentages auto-calculate. Group similar rolls to decide cutting strategy.</p>
+                        
+                        <!-- New: Original block dimensions input + apply button -->
+                        <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap;">
+                            <div class="input-group" style="flex: 1; min-width: 150px;">
+                                <label>Original Block Length</label>
+                                <input type="number" id="roll-orig-length" step="any" placeholder="e.g. 100">
+                            </div>
+                            <div class="input-group" style="flex: 1; min-width: 150px;">
+                                <label>Original Block Width</label>
+                                <input type="number" id="roll-orig-width" step="any" placeholder="e.g. 100">
+                            </div>
+                            <button type="button" class="btn-primary" onclick="applyOriginalToAllRolls()" style="height: 42px;">Apply to All Rolls</button>
+                            <button type="button" class="btn-outline" onclick="autoFillRollIds()" style="height: 42px;"><i class="fas fa-tag"></i> Auto‑fill Roll IDs</button>
+                        </div>
+
+                        <!-- Table container with horizontal scroll to prevent container expansion -->
+                        <div class="roll-table-container">
+                            <table class="roll-table" id="roll-table">
+                                <thead>
+                                    <tr>
+                                        <th>Roll ID</th>
+                                        <th>Before L</th>
+                                        <th>Before W</th>
+                                        <th>After L</th>
+                                        <th>After W</th>
+                                        <th>Shrink L%</th>
+                                        <th>Shrink W%</th>
+                                        <th>Group</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr id="roll-row-1">
+                                        <td><input type="text" id="roll-id1" placeholder="e.g. R1" style="width:60px;"></td>
+                                        <td><input type="number" id="roll-bL1" step="any" oninput="calcRollRow(1)"></td>
+                                        <td><input type="number" id="roll-bW1" step="any" oninput="calcRollRow(1)"></td>
+                                        <td><input type="number" id="roll-aL1" step="any" oninput="calcRollRow(1)"></td>
+                                        <td><input type="number" id="roll-aW1" step="any" oninput="calcRollRow(1)"></td>
+                                        <td id="roll-sL1">-</td>
+                                        <td id="roll-sW1">-</td>
+                                        <td id="roll-group1"></td>
+                                    </tr>
+                                    <tr id="roll-row-2">
+                                        <td><input type="text" id="roll-id2" placeholder="e.g. R2" style="width:60px;"></td>
+                                        <td><input type="number" id="roll-bL2" step="any" oninput="calcRollRow(2)"></td>
+                                        <td><input type="number" id="roll-bW2" step="any" oninput="calcRollRow(2)"></td>
+                                        <td><input type="number" id="roll-aL2" step="any" oninput="calcRollRow(2)"></td>
+                                        <td><input type="number" id="roll-aW2" step="any" oninput="calcRollRow(2)"></td>
+                                        <td id="roll-sL2">-</td>
+                                        <td id="roll-sW2">-</td>
+                                        <td id="roll-group2"></td>
+                                    </tr>
+                                    <tr id="roll-row-3">
+                                        <td><input type="text" id="roll-id3" placeholder="e.g. R3" style="width:60px;"></td>
+                                        <td><input type="number" id="roll-bL3" step="any" oninput="calcRollRow(3)"></td>
+                                        <td><input type="number" id="roll-bW3" step="any" oninput="calcRollRow(3)"></td>
+                                        <td><input type="number" id="roll-aL3" step="any" oninput="calcRollRow(3)"></td>
+                                        <td><input type="number" id="roll-aW3" step="any" oninput="calcRollRow(3)"></td>
+                                        <td id="roll-sL3">-</td>
+                                        <td id="roll-sW3">-</td>
+                                        <td id="roll-group3"></td>
+                                    </tr>
+                                    <tr id="roll-row-4">
+                                        <td><input type="text" id="roll-id4" placeholder="e.g. R4" style="width:60px;"></td>
+                                        <td><input type="number" id="roll-bL4" step="any" oninput="calcRollRow(4)"></td>
+                                        <td><input type="number" id="roll-bW4" step="any" oninput="calcRollRow(4)"></td>
+                                        <td><input type="number" id="roll-aL4" step="any" oninput="calcRollRow(4)"></td>
+                                        <td><input type="number" id="roll-aW4" step="any" oninput="calcRollRow(4)"></td>
+                                        <td id="roll-sL4">-</td>
+                                        <td id="roll-sW4">-</td>
+                                        <td id="roll-group4"></td>
+                                    </tr>
+                                    <tr id="roll-row-5">
+                                        <td><input type="text" id="roll-id5" placeholder="e.g. R5" style="width:60px;"></td>
+                                        <td><input type="number" id="roll-bL5" step="any" oninput="calcRollRow(5)"></td>
+                                        <td><input type="number" id="roll-bW5" step="any" oninput="calcRollRow(5)"></td>
+                                        <td><input type="number" id="roll-aL5" step="any" oninput="calcRollRow(5)"></td>
+                                        <td><input type="number" id="roll-aW5" step="any" oninput="calcRollRow(5)"></td>
+                                        <td id="roll-sL5">-</td>
+                                        <td id="roll-sW5">-</td>
+                                        <td id="roll-group5"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                            <button type="button" class="btn-primary" onclick="groupSimilarRolls()"><i class="fas fa-object-group"></i> Group Similar Rolls</button>
+                            <button type="button" class="btn-success" onclick="openSaveGroupModal()"><i class="fas fa-save"></i> Save Group to Library</button>
+                            <button type="button" class="btn-success" onclick="openSaveShipmentModal()"><i class="fas fa-boxes"></i> Save Shipment Lot</button>
+                            <button type="button" class="btn-outline" onclick="resetRollTable()">Reset Rolls</button>
+                        </div>
+
+                        <div style="background: var(--info-light); padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--primary);">
+                            <div style="font-weight: 800; font-size: 14px; margin-bottom: 10px; color: var(--primary-dark);">ROLL STATISTICS</div>
+                            <div style="display: flex; justify-content: space-around; font-size: 16px; font-weight: bold; flex-wrap: wrap;">
+                                <span>Avg L: <span id="roll-avgL">0.0%</span></span>
+                                <span>Avg W: <span id="roll-avgW">0.0%</span></span>
+                                <span>Range L: <span id="roll-rangeL">0.0%</span></span>
+                                <span>Range W: <span id="roll-rangeW">0.0%</span></span>
+                            </div>
+                            <div id="roll-recommendation" style="margin-top: 15px; padding: 10px; background: white; border-radius: 6px; font-weight: bold; text-align: center;">
+                                Recommendation: Enter data to analyze.
+                            </div>
+                        </div>
+
+                        <div style="margin-top: auto; display:flex; gap:10px;">
+                            <button type="button" class="btn-primary" style="flex:1; padding: 15px; font-size: 16px;" onclick="transferRollAvgToMain()">Apply Average to Main Dashboard</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- END ENHANCED TAB -->
+
+            </section>
+
+            <section id="view-results" class="view-section">
+                <div class="page-header">
+                    <h1>Fabric Shrinkage Results</h1>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn-outline" onclick="exportData()"><i class="fas fa-download"></i> Export JSON</button>
+                        <label class="btn-outline" style="cursor: pointer; margin:0;">
+                            <i class="fas fa-upload"></i> Import JSON
+                            <input type="file" id="importFile" accept=".json,application/json" style="display: none;" onchange="importData(event)">
+                        </label>
+                        <button type="button" class="btn-danger" onclick="deleteAllResults()"><i class="fas fa-trash"></i> Delete All</button>
+                    </div>
+                </div>
+                
+                <div class="toolbar-container">
+                    <div class="input-group" style="margin-bottom: 0; flex: 1;">
+                        <input type="text" id="searchInput" placeholder="Search fabrics or wash types..." oninput="renderResults()">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0; width: 220px;">
+                        <select id="sortBy" onchange="renderResults()">
+                            <option value="dateDesc">Sort: Newest First</option>
+                            <option value="dateAsc">Sort: Oldest First</option>
+                            <option value="nameAsc">Sort: Name (A-Z)</option>
+                            <option value="shrinkDesc">Sort: Highest Shrinkage</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="resultsContainer"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Existing Save Modal (for single results) -->
+    <div class="modal-overlay" id="saveResultModal">
+        <div class="modal-content">
+            <h3 id="modal-title" style="margin-bottom: 20px;">Save Shrinkage Result</h3>
+            
+            <div class="input-group">
+                <label>Fabric Category (Type)</label>
+                <select id="saveFabType" onchange="handleCategoryChange()"></select>
+                <input type="text" id="saveFabTypeCustom" placeholder="Type your custom category..." style="display:none; margin-top: 10px; border-color: var(--primary);">
+            </div>
+
+            <div class="input-group">
+                <label>Specific Fabric Name</label>
+                <input type="text" id="saveFabName" list="popularFabrics" placeholder="e.g. 14oz Japanese Selvedge or choose from list">
+                <datalist id="popularFabrics"></datalist>
+            </div>
+
+            <div style="background: var(--secondary); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 5px;">Calculation verified:</div>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+                    <span>Length (L): <span id="modalLVal" style="color:var(--primary)">0%</span></span>
+                    <span>Width (W): <span id="modalWVal" style="color:var(--primary)">0%</span></span>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="btn-outline" style="flex:1;" onclick="closeSaveModal()">Cancel</button>
+                <button type="button" class="btn-primary" id="modal-submit-btn" style="flex:1;" onclick="saveResultToLibrary()">Save to Library</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Group Modal -->
+    <div class="modal-overlay" id="saveGroupModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Save Roll Group</h3>
+            
+            <div class="input-group">
+                <label>Group Name / Identifier</label>
+                <input type="text" id="saveGroupName" placeholder="e.g. Denim Shipment A">
+            </div>
+
+            <div style="background: var(--secondary); padding: 15px; border-radius: 8px; margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 5px;">Rolls included:</div>
+                <div id="groupRollsSummary"></div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="btn-outline" style="flex:1;" onclick="closeSaveGroupModal()">Cancel</button>
+                <button type="button" class="btn-primary" style="flex:1;" onclick="saveRollGroup()">Save Group</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Shipment Modal -->
+    <div class="modal-overlay" id="saveShipmentModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Save Shipment Lot</h3>
+            
+            <div class="input-group">
+                <label>Shipment Name / Identifier</label>
+                <input type="text" id="saveShipmentName" placeholder="e.g. Denim Import March 2025">
+            </div>
+
+            <div style="background: var(--secondary); padding: 15px; border-radius: 8px; margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 5px;">Groups included:</div>
+                <div id="shipmentGroupsSummary"></div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="btn-outline" style="flex:1;" onclick="closeSaveShipmentModal()">Cancel</button>
+                <button type="button" class="btn-primary" style="flex:1;" onclick="saveShipment()">Save Shipment</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="print-report-container"></div>
+
+    <script>
+        // ========== STATE MANAGEMENT ==========
+        let editingRecordId = null; 
+        
+        // Base visualization size (square container) – now 500px to fill card width
+        const BASE_SIZE = 500; 
+
+        // Store current groups after grouping
+        let currentRollGroups = []; // array of { letter, rows, rolls: [{id, bL, bW, aL, aW, sL, sW}] }
+
+        // ========== FABRIC DATA DICTIONARY ==========
+        const fabricData = {
+            "Denim": ["14oz Raw Selvedge", "12oz Stretch Denim", "10oz Bull Denim", "Chambray"],
+            "Cotton": ["100% Cotton Jersey", "Cotton Poplin", "Cotton Twill", "Combed Cotton", "Cotton Canvas", "Pima Cotton"],
+            "Linen": ["100% Linen", "Linen/Cotton Blend", "Heavyweight Linen", "Handkerchief Linen"],
+            "Silk": ["Silk Charmeuse", "Silk Chiffon", "Raw Silk", "Silk Crepe de Chine", "Habotai"],
+            "Wool": ["Merino Wool", "Worsted Wool", "Wool Flannel", "Boiled Wool", "Tweed", "Gabardine"],
+            "Synthetics": ["100% Polyester", "Nylon Spandex", "Acrylic Knit", "Polyester Microfiber"],
+            "Rayon / Viscose": ["Rayon Challis", "Viscose Crepe", "Modal Jersey", "Cupro"],
+            "Fleece": ["Cotton Fleece", "Polar Fleece", "Microfleece", "Sherpa Fleece"],
+            "Corduroy": ["14 Wale Corduroy", "8 Wale Corduroy", "Stretch Corduroy", "Pinwale Corduroy"],
+            "Velvet / Velour": ["Cotton Velvet", "Crushed Velvet", "Stretch Velour", "Panne Velvet"],
+            "Spandex / Activewear": ["4-way Stretch Spandex", "Nylon Tricot", "Ribbed Knit Stretch", "Lycra Blend"],
+            "Flannel": ["100% Cotton Flannel", "Yarn-Dyed Flannel", "Brushed Flannel", "Plaid Flannel"],
+            "Satin": ["Polyester Satin", "Duchess Satin", "Silk Satin", "Sateen"],
+            "Canvas / Duck": ["10oz Cotton Duck", "Waxed Canvas", "Heavy Duty Canvas"],
+            "Muslin": ["Unbleached Muslin", "Bleached Muslin", "Sheer Muslin"],
+            "Poplin": ["Cotton Poplin", "Stretch Poplin", "Poly-Cotton Poplin"],
+            "Jersey": ["Cotton Spandex Jersey", "Bamboo Jersey", "Slub Jersey", "Ponte de Roma"],
+            "Chiffon / Georgette": ["Silk Georgette", "Poly Chiffon", "Crepe de Chine"],
+            "Terry Cloth": ["100% Cotton Terry", "French Terry", "Bamboo Terry", "Microfiber Terry"],
+            "Broadcloth": ["100% Cotton Broadcloth", "Poly-Cotton Broadcloth"],
+            "Batiste": ["Cotton Batiste", "Silk Batiste"],
+            "Tencel / Lyocell": ["Tencel Twill", "Lyocell Jersey"],
+            "Other": []
+        };
+
+        // ========== 1. APP NAVIGATION & UNIT LOGIC ==========
+        let currentView = 'calculator';
+
+        function switchView(viewId, element) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            element.classList.add('active');
+            currentView = viewId;
+            if(viewId === 'results') renderResults();
+        }
+
+        function switchCalcMode(modeId, btnEl) {
+            document.querySelectorAll('.calc-mode').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('calc-mode-' + modeId).classList.add('active');
+            btnEl.classList.add('active');
+
+            const saveBtn = document.getElementById('main-save-btn');
+            saveBtn.style.display = (modeId === 'shrinkage') ? 'block' : 'none';
+        }
+
+        function updateUnits() {
+            const currentUnit = document.getElementById('unit-select').value;
+            document.querySelectorAll('.unit-label').forEach(el => {
+                el.textContent = currentUnit;
+            });
+        }
+
+        // ========== 2. QUICK MATH LOGIC ==========
+        function calculateQM2() {
+            const x = parseFloat(document.getElementById('qm2-x').value);
+            const y = parseFloat(document.getElementById('qm2-y').value);
+            const ansEl = document.getElementById('qm2-ans');
+            const barEl = document.getElementById('qm2-bar');
+            const barText = document.getElementById('qm2-bar-text');
+
+            if(!isNaN(x) && !isNaN(y) && y !== 0) {
+                const perc = (x / y) * 100;
+                ansEl.innerText = perc.toFixed(1) + '%';
+                
+                const widthPerc = Math.min(Math.abs(perc), 100);
+                barEl.style.width = widthPerc + '%';
+                
+                if (widthPerc > 15) {
+                    barText.style.display = 'block';
+                    barText.innerText = perc.toFixed(0) + '%';
+                } else {
+                    barText.style.display = 'none';
+                }
+            } else {
+                ansEl.innerText = '0%';
+                barEl.style.width = '0%';
+                barText.style.display = 'none';
+            }
+        }
+
+        function calculateQM3() {
+            const x = parseFloat(document.getElementById('qm3-x').value);
+            const y = parseFloat(document.getElementById('qm3-y').value);
+            const ansEl = document.getElementById('qm3-ans');
+            const barEl = document.getElementById('qm3-bar');
+            const barText = document.getElementById('qm3-bar-text');
+
+            if(!isNaN(x) && !isNaN(y)) {
+                const val = (x / 100) * y;
+                ansEl.innerText = val.toFixed(2);
+                
+                const widthPerc = Math.min(Math.abs(x), 100);
+                barEl.style.width = widthPerc + '%';
+                
+                if (widthPerc > 15) {
+                    barText.style.display = 'block';
+                    barText.innerText = x.toFixed(0) + '%';
+                } else {
+                    barText.style.display = 'none';
+                }
+            } else {
+                ansEl.innerText = '0';
+                barEl.style.width = '0%';
+                barText.style.display = 'none';
+            }
+        }
+
+        // ========== 3. DYNAMIC FABRIC CATEGORIES FOR MODAL ==========
+        function populateFabricCategories() {
+            const select = document.getElementById('saveFabType');
+            select.innerHTML = '';
+            
+            Object.keys(fabricData).forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                select.appendChild(option);
+            });
+            handleCategoryChange();
+        }
+
+        function handleCategoryChange() {
+            const select = document.getElementById('saveFabType');
+            const customInput = document.getElementById('saveFabTypeCustom');
+            const datalist = document.getElementById('popularFabrics');
+            const nameInput = document.getElementById('saveFabName');
+            const selectedCategory = select.value;
+
+            if (selectedCategory === 'Other') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = ''; 
+            }
+
+            datalist.innerHTML = '';
+            nameInput.value = ''; 
+            nameInput.placeholder = "e.g. Type a name or choose from list";
+
+            if (fabricData[selectedCategory] && fabricData[selectedCategory].length > 0) {
+                fabricData[selectedCategory].forEach(fabricName => {
+                    const option = document.createElement('option');
+                    option.value = fabricName;
+                    datalist.appendChild(option);
+                });
+            }
+        }
+
+        // ========== 4. SMART WASH SELECTION LOGIC ==========
+        function handleSmartWashSelection() {
+            const washSelect = document.getElementById('calc-wash');
+            const customInput = document.getElementById('calc-wash-custom');
+            const smartTip = document.getElementById('smart-wash-tip');
+            const smartTipText = document.getElementById('smart-tip-text');
+            const selectedValue = washSelect.value;
+
+            if (selectedValue === 'Other') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = ''; 
+            }
+
+            smartTip.style.display = 'block'; 
+            if (selectedValue.includes('Dye')) {
+                smartTipText.innerHTML = "<strong>Garment Dyeing</strong> requires prolonged high-temperature baths. Expect significantly higher shrinkage (often 5-10% more) compared to standard washes.";
+            } else if (selectedValue.includes('Enzyme') || selectedValue.includes('Stone') || selectedValue.includes('Sand')) {
+                smartTipText.innerHTML = "<strong>Abrasion Washes</strong> break down surface fibers. Ensure your before-wash square edges are securely overlocked to prevent fraying from skewing your measurements.";
+            } else if (selectedValue.includes('Acid') || selectedValue.includes('Bleach')) {
+                smartTipText.innerHTML = "<strong>Harsh Chemicals</strong> can affect the elasticity of spandex blends. If this fabric has stretch, check recovery after this wash.";
+            } else if (selectedValue === 'Raw Wash / Rinse') {
+                smartTipText.innerHTML = "<strong>Raw/Rinse Wash</strong> usually yields the minimum baseline shrinkage. Heat in the tumble dryer will be the main shrinkage factor here.";
+            } else {
+                smartTip.style.display = 'none'; 
+            }
+        }
+
+        // ========== 5. DYNAMIC CALCULATION MAIN ==========
+        function triggerCalculation() {
+            const gear = document.getElementById('calc-gear');
+            const btn = document.getElementById('calc-btn');
+            
+            if(gear) gear.classList.add('fa-spin'); 
+            if(btn) btn.style.opacity = '0.8';
+            
+            setTimeout(() => {
+                calculateFromMeasurements();
+                if(gear) gear.classList.remove('fa-spin'); 
+                if(btn) btn.style.opacity = '1';
+            }, 500);
+        }
+
+        function calculateFromMeasurements() {
+            const bwWText = document.getElementById('calc-bw-w').value;
+            const awWText = document.getElementById('calc-aw-w').value;
+            const bwLText = document.getElementById('calc-bw-l').value;
+            const awLText = document.getElementById('calc-aw-l').value;
+
+            if ((bwWText !== "" && awWText === "") || (bwWText === "" && awWText !== "")) {
+                alert("⚠️ Please fill in both Before and After measurements for the Width to calculate it.");
+                return;
+            }
+            if ((bwLText !== "" && awLText === "") || (bwLText === "" && awLText !== "")) {
+                alert("⚠️ Please fill in both Before and After measurements for the Length to calculate it.");
+                return;
+            }
+            if (!bwWText && !awWText && !bwLText && !awLText) {
+                alert("⚠️ Please enter at least one set of measurements (Length or Width) to calculate.");
+                return;
+            }
+
+            const bwW = parseFloat(bwWText);
+            const awW = parseFloat(awWText);
+            const bwL = parseFloat(bwLText);
+            const awL = parseFloat(awLText);
+
+            let widthShrink = 0;
+            let lengthShrink = 0;
+
+            if (!isNaN(bwW) && !isNaN(awW) && bwW !== 0) {
+                widthShrink = ((bwW - awW) / bwW) * 100;
+            }
+            if (!isNaN(bwL) && !isNaN(awL) && bwL !== 0) {
+                lengthShrink = ((bwL - awL) / bwL) * 100;
+            }
+
+            document.getElementById('widthInput').value = widthShrink;
+            document.getElementById('lengthInput').value = lengthShrink;
+            
+            updateVisualPreview(widthShrink, lengthShrink);
+        }
+
+        // ========== 6. ADVANCED TEST & AUTO-FILL LOGIC ==========
+        let advAverages = { L: 0, W: 0 };
+
+        function calcAdvRow(rowNum) {
+            // Auto-fill logic for rows 2 and 3 when row 1 is edited
+            if (rowNum === 1) {
+                const bL1 = document.getElementById('adv-bL1').value;
+                const bW1 = document.getElementById('adv-bW1').value;
+                document.getElementById('adv-bL2').value = bL1;
+                document.getElementById('adv-bL3').value = bL1;
+                document.getElementById('adv-bW2').value = bW1;
+                document.getElementById('adv-bW3').value = bW1;
+            }
+
+            // Recalculate all rows safely
+            for(let i=1; i<=3; i++) {
+                const bL = parseFloat(document.getElementById(`adv-bL${i}`).value);
+                const aL = parseFloat(document.getElementById(`adv-aL${i}`).value);
+                const bW = parseFloat(document.getElementById(`adv-bW${i}`).value);
+                const aW = parseFloat(document.getElementById(`adv-aW${i}`).value);
+
+                if (!isNaN(bL) && !isNaN(aL) && bL !== 0) {
+                    let sL = ((bL - aL) / bL) * 100;
+                    let sign = sL > 0 ? '-' : (sL < 0 ? '+' : '');
+                    document.getElementById(`adv-resL${i}`).textContent = `${sign}${Math.abs(sL).toFixed(1)}%`;
+                } else { document.getElementById(`adv-resL${i}`).textContent = '-'; }
+
+                if (!isNaN(bW) && !isNaN(aW) && bW !== 0) {
+                    let sW = ((bW - aW) / bW) * 100;
+                    let sign = sW > 0 ? '-' : (sW < 0 ? '+' : '');
+                    document.getElementById(`adv-resW${i}`).textContent = `${sign}${Math.abs(sW).toFixed(1)}%`;
+                } else { document.getElementById(`adv-resW${i}`).textContent = '-'; }
+            }
+
+            calcAdvAverages();
+        }
+
+        function calcAdvAverages() {
+            let sumL = 0; let countL = 0;
+            let sumW = 0; let countW = 0;
+
+            for(let i=1; i<=3; i++) {
+                const bL = parseFloat(document.getElementById(`adv-bL${i}`).value);
+                const aL = parseFloat(document.getElementById(`adv-aL${i}`).value);
+                const bW = parseFloat(document.getElementById(`adv-bW${i}`).value);
+                const aW = parseFloat(document.getElementById(`adv-aW${i}`).value);
+
+                if (!isNaN(bL) && !isNaN(aL) && bL !== 0) {
+                    sumL += ((bL - aL) / bL) * 100;
+                    countL++;
+                }
+                if (!isNaN(bW) && !isNaN(aW) && bW !== 0) {
+                    sumW += ((bW - aW) / bW) * 100;
+                    countW++;
+                }
+            }
+
+            advAverages.L = countL > 0 ? sumL / countL : 0;
+            advAverages.W = countW > 0 ? sumW / countW : 0;
+
+            const lSign = advAverages.L > 0 ? '-' : (advAverages.L < 0 ? '+' : '');
+            const wSign = advAverages.W > 0 ? '-' : (advAverages.W < 0 ? '+' : '');
+
+            document.getElementById('adv-avgL').textContent = countL > 0 ? `${lSign}${Math.abs(advAverages.L).toFixed(1)}%` : '0.0%';
+            document.getElementById('adv-avgW').textContent = countW > 0 ? `${wSign}${Math.abs(advAverages.W).toFixed(1)}%` : '0.0%';
+
+            calcPatternAdjust();
+        }
+
+        function calcPatternAdjust() {
+            const desL = parseFloat(document.getElementById('pat-desired-L').value);
+            const desW = parseFloat(document.getElementById('pat-desired-W').value);
+
+            // Formula: Cut Size = Desired / (1 - (Shrink% / 100))
+            if(!isNaN(desL)) {
+                const factorL = 1 - (advAverages.L / 100);
+                const cutL = desL / factorL;
+                document.getElementById('pat-cut-L').textContent = cutL.toFixed(2);
+            } else { document.getElementById('pat-cut-L').textContent = '-'; }
+
+            if(!isNaN(desW)) {
+                const factorW = 1 - (advAverages.W / 100);
+                const cutW = desW / factorW;
+                document.getElementById('pat-cut-W').textContent = cutW.toFixed(2);
+            } else { document.getElementById('pat-cut-W').textContent = '-'; }
+        }
+
+        function transferAvgToMain() {
+            if(advAverages.L !== 0) {
+                document.getElementById('calc-bw-l').value = 100;
+                document.getElementById('calc-aw-l').value = (100 * (1 - (advAverages.L / 100))).toFixed(1);
+            }
+            if(advAverages.W !== 0) {
+                document.getElementById('calc-bw-w').value = 100;
+                document.getElementById('calc-aw-w').value = (100 * (1 - (advAverages.W / 100))).toFixed(1);
+            }
+            
+            switchCalcMode('shrinkage', document.querySelectorAll('.tab-btn')[0]);
+            triggerCalculation();
+        }
+
+        // ========== 7. SHRINKAGE RESULTS (DATA MANAGEMENT) ==========
+        // Migration: ensure old records have recordType = 'single'
+        let savedResults = JSON.parse(localStorage.getItem('shrinkStudioResults')) || [
+            { id: 1, type: "Denim", name: "14oz Raw Selvedge", wash: "Raw Wash", temp: "Cold", duration: "30m", bwL: 20, awL: 19.4, bwW: 20, awW: 19.5, wShrink: 2.5, lShrink: 3.0, date: "10/24/2023", unit: "inches", recordType: "single" }
+        ];
+        // Ensure each record has recordType
+        savedResults = savedResults.map(r => {
+            if (!r.recordType) r.recordType = "single";
+            return r;
+        });
+
+        function renderResults() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            let filteredResults = [...savedResults];
+
+            // Search
+            const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            if (searchTerm) {
+                filteredResults = filteredResults.filter(r => 
+                    (r.name && r.name.toLowerCase().includes(searchTerm)) || 
+                    (r.type && r.type.toLowerCase().includes(searchTerm)) ||
+                    (r.wash && r.wash.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            // Sorting
+            const sortBy = document.getElementById('sortBy')?.value || 'dateDesc';
+            filteredResults.sort((a, b) => {
+                if (sortBy === 'dateDesc') return b.id - a.id;
+                if (sortBy === 'dateAsc') return a.id - b.id;
+                if (sortBy === 'nameAsc') return (a.name || '').localeCompare(b.name || '');
+                if (sortBy === 'shrinkDesc') {
+                    const aMax = Math.max(a.wShrink || 0, a.lShrink || 0);
+                    const bMax = Math.max(b.wShrink || 0, b.lShrink || 0);
+                    return bMax - aMax;
+                }
+                return 0;
+            });
+
+            if (filteredResults.length === 0) {
+                container.innerHTML = '<p style="color:#666; text-align:center; padding: 40px;">No matching shrinkage results found.</p>';
+                return;
+            }
+
+            // Separate singles, groups, shipments
+            const singles = filteredResults.filter(r => r.recordType === 'single');
+            const groups = filteredResults.filter(r => r.recordType === 'group');
+            const shipments = filteredResults.filter(r => r.recordType === 'shipment');
+
+            // Render singles grouped by type
+            const groupedSingles = singles.reduce((acc, current) => {
+                if (!acc[current.type]) acc[current.type] = [];
+                acc[current.type].push(current);
+                return acc;
+            }, {});
+
+            for (const type in groupedSingles) {
+                let groupHTML = `
+                    <div class="results-group">
+                        <div class="group-title">${type}</div>
+                        <div class="library-grid">
+                `;
+                
+                groupedSingles[type].forEach(res => {
+                    const wColor = res.wShrink > 0 ? 'var(--danger)' : (res.wShrink < 0 ? 'var(--success)' : 'var(--text-main)');
+                    const lColor = res.lShrink > 0 ? 'var(--danger)' : (res.lShrink < 0 ? 'var(--success)' : 'var(--text-main)');
+                    
+                    const wText = res.wShrink > 0 ? `Shrink -${res.wShrink.toFixed(1)}%` : (res.wShrink < 0 ? `Stretch +${Math.abs(res.wShrink).toFixed(1)}%` : `0%`);
+                    const lText = res.lShrink > 0 ? `Shrink -${res.lShrink.toFixed(1)}%` : (res.lShrink < 0 ? `Stretch +${Math.abs(res.lShrink).toFixed(1)}%` : `0%`);
+                    
+                    let processDetails = res.wash || 'Standard Wash';
+                    if(res.temp) processDetails += ` | ${res.temp}`;
+                    if(res.duration) processDetails += ` | ${res.duration}`;
+
+                    groupHTML += `
+                        <div class="result-card">
+                            <i class="fas fa-trash delete-icon" onclick="deleteResult(${res.id})" title="Delete"></i>
+                            <div style="flex:1;">
+                                <div class="swatch-title">${res.name}</div>
+                                <div class="swatch-type"><i class="fas fa-tint"></i> ${processDetails}</div>
+                                
+                                <div style="font-size: 11px; color: var(--text-light); margin-bottom: 5px; margin-top: 10px;">
+                                    <i class="fas fa-ruler-combined"></i> 
+                                    <strong>BW:</strong> ${res.bwL||'-'}L x ${res.bwW||'-'}W | <strong>AW:</strong> ${res.awL||'-'}L x ${res.awW||'-'}W (${res.unit||'in'})
+                                </div>
+
+                                <div class="shrink-data-row">
+                                    <span>L: <span style="color:${lColor}">${lText}</span></span>
+                                    <span>W: <span style="color:${wColor}">${wText}</span></span>
+                                </div>
+                                <div class="date-stamp">Saved on ${res.date}</div>
+                            </div>
+                            <div style="display:flex; gap: 8px; margin-top: 15px;">
+                                <button type="button" class="btn-outline" style="flex:1; padding:8px; font-size:12px;" onclick="loadResultForEdit(${res.id})" title="Edit original record">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button type="button" class="btn-outline" style="flex:1; padding:8px; font-size:12px;" onclick="duplicateResult(${res.id})" title="Create a new copy">
+                                    <i class="fas fa-copy"></i> Duplicate
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                groupHTML += `</div></div>`;
+                container.innerHTML += groupHTML;
+            }
+
+            // Render standalone groups
+            groups.forEach(group => {
+                const avgL = group.avgL || 0;
+                const avgW = group.avgW || 0;
+                const lColor = avgL > 0 ? 'var(--danger)' : (avgL < 0 ? 'var(--success)' : 'var(--text-main)');
+                const wColor = avgW > 0 ? 'var(--danger)' : (avgW < 0 ? 'var(--success)' : 'var(--text-main)');
+                const lText = avgL > 0 ? `Avg Shrink -${avgL.toFixed(1)}%` : (avgL < 0 ? `Avg Stretch +${Math.abs(avgL).toFixed(1)}%` : `Avg 0%`);
+                const wText = avgW > 0 ? `Avg Shrink -${avgW.toFixed(1)}%` : (avgW < 0 ? `Avg Stretch +${Math.abs(avgW).toFixed(1)}%` : `Avg 0%`);
+
+                let groupCardHTML = `
+                    <div class="results-group">
+                        <div class="group-title">Roll Group: ${group.name}</div>
+                        <div class="library-grid">
+                            <div class="result-card group-card">
+                                <i class="fas fa-trash delete-icon" onclick="deleteResult(${group.id})" title="Delete Group"></i>
+                                <div style="flex:1;">
+                                    <div class="swatch-title">${group.name} (${group.rolls ? group.rolls.length : 0} rolls)</div>
+                                    <div class="swatch-type"><i class="fas fa-calendar"></i> Saved on ${group.date}</div>
+                                    
+                                    <div class="shrink-data-row" style="margin-top:10px;">
+                                        <span style="color:${lColor}">${lText}</span>
+                                        <span style="color:${wColor}">${wText}</span>
+                                    </div>
+                                    
+                                    <div class="expand-group" onclick="toggleGroupRolls(${group.id})">
+                                        <i class="fas fa-chevron-down"></i> Show/Hide Rolls
+                                    </div>
+                                    <table class="group-rolls-table" id="group-rolls-${group.id}">
+                                        <thead><tr><th>Roll</th><th>Before L</th><th>Before W</th><th>After L</th><th>After W</th><th>Shrink L%</th><th>Shrink W%</th></tr></thead>
+                                        <tbody>
+                `;
+                if (group.rolls) {
+                    group.rolls.forEach(roll => {
+                        groupCardHTML += `<tr>
+                            <td>${roll.id || '?'}</td>
+                            <td>${roll.bL !== undefined ? roll.bL.toFixed(1) : '-'}</td>
+                            <td>${roll.bW !== undefined ? roll.bW.toFixed(1) : '-'}</td>
+                            <td>${roll.aL !== undefined ? roll.aL.toFixed(1) : '-'}</td>
+                            <td>${roll.aW !== undefined ? roll.aW.toFixed(1) : '-'}</td>
+                            <td>${roll.sL !== undefined ? roll.sL.toFixed(1) + '%' : '-'}</td>
+                            <td>${roll.sW !== undefined ? roll.sW.toFixed(1) + '%' : '-'}</td>
+                        </tr>`;
+                    });
+                }
+                groupCardHTML += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="display:flex; gap: 8px; margin-top: 15px;">
+                                    <button type="button" class="btn-outline" style="flex:1; padding:8px; font-size:12px;" onclick="loadGroupForEdit(${group.id})">
+                                        <i class="fas fa-edit"></i> Load Avg
+                                    </button>
+                                    <button type="button" class="btn-outline" style="flex:1; padding:8px; font-size:12px;" onclick="duplicateGroup(${group.id})">
+                                        <i class="fas fa-copy"></i> Duplicate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += groupCardHTML;
+            });
+
+            // Render shipments
+            shipments.forEach(shipment => {
+                let shipmentHTML = `
+                    <div class="results-group">
+                        <div class="group-title">Shipment Lot: ${shipment.name}</div>
+                        <div class="library-grid">
+                            <div class="result-card shipment-card">
+                                <i class="fas fa-trash delete-icon" onclick="deleteResult(${shipment.id})" title="Delete Shipment"></i>
+                                <div style="flex:1;">
+                                    <div class="swatch-title">${shipment.name} (${shipment.groups.length} groups)</div>
+                                    <div class="swatch-type"><i class="fas fa-calendar"></i> Saved on ${shipment.date}</div>
+                                    
+                                    <div class="expand-group" onclick="toggleShipmentGroups(${shipment.id})">
+                                        <i class="fas fa-chevron-down"></i> Show/Hide Groups
+                                    </div>
+                                    <div id="shipment-groups-${shipment.id}" style="display:none; margin-top:15px;">
+                `;
+                shipment.groups.forEach((group, idx) => {
+                    const avgL = group.avgL || 0;
+                    const avgW = group.avgW || 0;
+                    const lColor = avgL > 0 ? 'var(--danger)' : (avgL < 0 ? 'var(--success)' : 'var(--text-main)');
+                    const wColor = avgW > 0 ? 'var(--danger)' : (avgW < 0 ? 'var(--success)' : 'var(--text-main)');
+                    const lText = avgL > 0 ? `Shrink -${avgL.toFixed(1)}%` : (avgL < 0 ? `Stretch +${Math.abs(avgL).toFixed(1)}%` : `0%`);
+                    const wText = avgW > 0 ? `Shrink -${avgW.toFixed(1)}%` : (avgW < 0 ? `Stretch +${Math.abs(avgW).toFixed(1)}%` : `0%`);
+
+                    shipmentHTML += `
+                        <div style="border:1px solid var(--border-color); border-radius:8px; padding:10px; margin-bottom:10px; background:var(--secondary);">
+                            <div style="font-weight:bold; margin-bottom:5px;">Group ${group.letter}</div>
+                            <div class="shrink-data-row" style="margin-bottom:10px;">
+                                <span style="color:${lColor}">L: ${lText}</span>
+                                <span style="color:${wColor}">W: ${wText}</span>
+                            </div>
+                            <table style="width:100%; font-size:11px; border-collapse:collapse;">
+                                <thead><tr><th>Roll</th><th>Before L</th><th>Before W</th><th>After L</th><th>After W</th><th>Shrink L%</th><th>Shrink W%</th></tr></thead>
+                                <tbody>
+                    `;
+                    group.rolls.forEach(roll => {
+                        shipmentHTML += `<tr>
+                            <td>${roll.id}</td>
+                            <td>${roll.bL.toFixed(1)}</td>
+                            <td>${roll.bW.toFixed(1)}</td>
+                            <td>${roll.aL.toFixed(1)}</td>
+                            <td>${roll.aW.toFixed(1)}</td>
+                            <td>${roll.sL ? roll.sL.toFixed(1)+'%' : '-'}</td>
+                            <td>${roll.sW ? roll.sW.toFixed(1)+'%' : '-'}</td>
+                        </tr>`;
+                    });
+                    shipmentHTML += `</tbody></table>`;
+                    shipmentHTML += `
+                            <div style="display:flex; gap:5px; margin-top:8px;">
+                                <button class="btn-outline" style="flex:1; padding:4px; font-size:11px;" onclick="loadGroupFromShipment(${shipment.id}, ${idx})">Load Group Avg</button>
+                                <button class="btn-outline" style="flex:1; padding:4px; font-size:11px;" onclick="duplicateGroupFromShipment(${shipment.id}, ${idx})">Duplicate Group</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                shipmentHTML += `
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += shipmentHTML;
+            });
+        }
+
+        function toggleShipmentGroups(shipmentId) {
+            const div = document.getElementById(`shipment-groups-${shipmentId}`);
+            if (div) div.style.display = div.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function loadGroupFromShipment(shipmentId, groupIdx) {
+            const shipment = savedResults.find(r => r.id === shipmentId);
+            if (!shipment) return;
+            const group = shipment.groups[groupIdx];
+            if (!group) return;
+            // Load average into main dashboard
+            if (group.avgL) {
+                document.getElementById('calc-bw-l').value = 100;
+                document.getElementById('calc-aw-l').value = (100 * (1 - group.avgL / 100)).toFixed(1);
+            }
+            if (group.avgW) {
+                document.getElementById('calc-bw-w').value = 100;
+                document.getElementById('calc-aw-w').value = (100 * (1 - group.avgW / 100)).toFixed(1);
+            }
+            switchView('calculator', document.querySelectorAll('.nav-item')[0]);
+            switchCalcMode('shrinkage', document.querySelectorAll('.tab-btn')[0]);
+            triggerCalculation();
+        }
+
+        function duplicateGroupFromShipment(shipmentId, groupIdx) {
+            const shipment = savedResults.find(r => r.id === shipmentId);
+            if (!shipment) return;
+            const group = shipment.groups[groupIdx];
+            const newGroup = {
+                id: Date.now() + Math.floor(Math.random()*1000),
+                recordType: 'group',
+                name: shipment.name + ' - Group ' + group.letter,
+                rolls: group.rolls.map(r => ({...r})),
+                avgL: group.avgL,
+                avgW: group.avgW,
+                date: new Date().toLocaleDateString()
+            };
+            savedResults.push(newGroup);
+            localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+            renderResults();
+        }
+
+        function toggleGroupRolls(groupId) {
+            const tbl = document.getElementById(`group-rolls-${groupId}`);
+            if (tbl) tbl.classList.toggle('show');
+        }
+
+        function deleteResult(id) {
+            if (confirm('Are you sure you want to delete this result?')) {
+                savedResults = savedResults.filter(r => r.id !== id);
+                localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+                renderResults();
+            }
+        }
+
+        function deleteAllResults() {
+            if (confirm('Delete all saved results? This cannot be undone.')) {
+                savedResults = [];
+                localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+                renderResults();
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(savedResults, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `shrinkage_data_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        // Add recordType if missing
+                        imported.forEach(r => { if (!r.recordType) r.recordType = "single"; });
+                        if (confirm('Replace current library with imported data? Click OK to replace, Cancel to keep existing.')) {
+                            savedResults = imported;
+                            localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+                            renderResults();
+                        }
+                    } else {
+                        alert('Invalid file format: expected an array of results.');
+                    }
+                } catch (err) {
+                    alert('Error parsing JSON file.');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function loadResultForEdit(id) {
+            const res = savedResults.find(r => r.id === id);
+            if(!res || res.recordType === 'group' || res.recordType === 'shipment') {
+                alert('Cannot edit a group or shipment in the main dashboard. You can load its average instead.');
+                return;
+            }
+
+            editingRecordId = id; 
+            fillDashboardFromRecord(res);
+
+            document.getElementById('dashboard-title').innerHTML = `Editing: <span style="color:var(--primary)">${res.name}</span>`;
+            document.getElementById('main-save-btn').innerHTML = `<i class="fas fa-save"></i> Update Result`;
+            document.getElementById('cancel-edit-btn').style.display = 'block';
+            document.getElementById('modal-title').innerText = "Update Shrinkage Result";
+            document.getElementById('modal-submit-btn').innerText = "Update Library";
+        }
+
+        function loadGroupForEdit(groupId) {
+            const group = savedResults.find(r => r.id === groupId);
+            if (!group || !group.rolls || group.rolls.length === 0) return;
+            // Load average into main dashboard
+            if (group.avgL) {
+                document.getElementById('calc-bw-l').value = 100;
+                document.getElementById('calc-aw-l').value = (100 * (1 - group.avgL / 100)).toFixed(1);
+            }
+            if (group.avgW) {
+                document.getElementById('calc-bw-w').value = 100;
+                document.getElementById('calc-aw-w').value = (100 * (1 - group.avgW / 100)).toFixed(1);
+            }
+            switchView('calculator', document.querySelectorAll('.nav-item')[0]);
+            switchCalcMode('shrinkage', document.querySelectorAll('.tab-btn')[0]);
+            triggerCalculation();
+        }
+
+        function duplicateGroup(groupId) {
+            const group = savedResults.find(r => r.id === groupId);
+            if (!group) return;
+            // Create a new group with same rolls but new id and date
+            const newGroup = {
+                ...group,
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                name: group.name + ' (copy)'
+            };
+            savedResults.push(newGroup);
+            localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+            renderResults();
+        }
+
+        function duplicateResult(id) {
+            const res = savedResults.find(r => r.id === id);
+            if(!res) return;
+            if (res.recordType === 'group') {
+                duplicateGroup(id);
+                return;
+            }
+            if (res.recordType === 'shipment') {
+                alert('Duplicating shipments is not supported yet.');
+                return;
+            }
+
+            fillDashboardFromRecord(res);
+            editingRecordId = null;
+
+            document.getElementById('dashboard-title').innerHTML = `Duplicating: <span style="color:var(--primary)">${res.name}</span>`;
+            document.getElementById('main-save-btn').innerHTML = `<i class="fas fa-save"></i> Save Copy`;
+            document.getElementById('cancel-edit-btn').style.display = 'block'; 
+            document.getElementById('modal-title').innerText = "Save as New Copy";
+            document.getElementById('modal-submit-btn').innerText = "Save to Library";
+        }
+
+        function fillDashboardFromRecord(res) {
+            document.getElementById('calc-bw-l').value = res.bwL || '';
+            document.getElementById('calc-aw-l').value = res.awL || '';
+            document.getElementById('calc-bw-w').value = res.bwW || '';
+            document.getElementById('calc-aw-w').value = res.awW || '';
+            
+            document.getElementById('calc-temp').value = res.temp || '';
+            document.getElementById('calc-duration').value = res.duration || '';
+
+            const washSelect = document.getElementById('calc-wash');
+            const customInput = document.getElementById('calc-wash-custom');
+            let optionExists = Array.from(washSelect.options).some(opt => opt.value === res.wash);
+            
+            if (optionExists && res.wash !== 'Other') {
+                washSelect.value = res.wash;
+                customInput.style.display = 'none';
+            } else {
+                washSelect.value = 'Other';
+                customInput.style.display = 'block';
+                customInput.value = res.wash === 'Not specified' ? '' : res.wash;
+            }
+            handleSmartWashSelection(); 
+
+            if (res.unit) {
+                document.getElementById('unit-select').value = res.unit;
+                updateUnits();
+            }
+
+            document.getElementById('widthInput').value = res.wShrink;
+            document.getElementById('lengthInput').value = res.lShrink;
+            updateVisualPreview(res.wShrink, res.lShrink);
+
+            const typeSelect = document.getElementById('saveFabType');
+            if(fabricData.hasOwnProperty(res.type)) {
+                typeSelect.value = res.type;
+                handleCategoryChange(); 
+            } else {
+                typeSelect.value = "Other";
+                handleCategoryChange();
+                document.getElementById('saveFabTypeCustom').value = res.type;
+            }
+            document.getElementById('saveFabName').value = res.name;
+
+            switchView('calculator', document.querySelectorAll('.nav-item')[0]);
+            switchCalcMode('shrinkage', document.querySelectorAll('.tab-btn')[0]);
+        }
+
+        function cancelEdit() {
+            resetAllControls();
+        }
+
+        // ========== 8. SAVE MODAL LOGIC (single) ==========
+        function openSaveModal() { 
+            const bwWText = document.getElementById('calc-bw-w').value;
+            const awWText = document.getElementById('calc-aw-w').value;
+            const bwLText = document.getElementById('calc-bw-l').value;
+            const awLText = document.getElementById('calc-aw-l').value;
+            
+            if (!bwWText && !awWText && !bwLText && !awLText) {
+                return alert("⚠️ Please enter measurements and click 'Calculate Shrinkage' before saving.");
+            }
+
+            calculateFromMeasurements();
+
+            if(!editingRecordId) handleCategoryChange();
+
+            document.getElementById('saveResultModal').classList.add('active'); 
+            
+            const wVal = parseFloat(document.getElementById('widthInput').value) || 0;
+            const lVal = parseFloat(document.getElementById('lengthInput').value) || 0;
+            
+            const wText = wVal > 0 ? `Shrink -${wVal.toFixed(1)}%` : (wVal < 0 ? `Stretch +${Math.abs(wVal).toFixed(1)}%` : `0%`);
+            const lText = lVal > 0 ? `Shrink -${lVal.toFixed(1)}%` : (lVal < 0 ? `Stretch +${Math.abs(lVal).toFixed(1)}%` : `0%`);
+
+            document.getElementById('modalWVal').textContent = wText;
+            document.getElementById('modalLVal').textContent = lText;
+        }
+        
+        function closeSaveModal() { document.getElementById('saveResultModal').classList.remove('active'); }
+
+        function saveResultToLibrary() {
+            const name = document.getElementById('saveFabName').value;
+            if (!name) return alert("Please enter a Specific Fabric Name to save.");
+
+            const bwWText = document.getElementById('calc-bw-w').value;
+            const awWText = document.getElementById('calc-aw-w').value;
+            const bwLText = document.getElementById('calc-bw-l').value;
+            const awLText = document.getElementById('calc-aw-l').value;
+
+            const bwW = parseFloat(bwWText);
+            const awW = parseFloat(awWText);
+            const bwL = parseFloat(bwLText);
+            const awL = parseFloat(awLText);
+
+            let type = document.getElementById('saveFabType').value;
+            if (type === 'Other') {
+                type = document.getElementById('saveFabTypeCustom').value || "Custom Category";
+            }
+            
+            let wash = document.getElementById('calc-wash').value;
+            if (wash === 'Other') {
+                wash = document.getElementById('calc-wash-custom').value || "Custom Wash";
+            } else if (!wash) {
+                wash = "Not specified";
+            }
+
+            const temp = document.getElementById('calc-temp').value;
+            const duration = document.getElementById('calc-duration').value;
+
+            const unit = document.getElementById('unit-select').value;
+            const wShrink = parseFloat(document.getElementById('widthInput').value) || 0;
+            const lShrink = parseFloat(document.getElementById('lengthInput').value) || 0;
+
+            if (editingRecordId) {
+                const index = savedResults.findIndex(r => r.id === editingRecordId);
+                if (index > -1) {
+                    savedResults[index] = { 
+                        ...savedResults[index], 
+                        type, name, wash, temp, duration,
+                        bwW: !isNaN(bwW) ? bwW : null, 
+                        awW: !isNaN(awW) ? awW : null,
+                        bwL: !isNaN(bwL) ? bwL : null, 
+                        awL: !isNaN(awL) ? awL : null,
+                        wShrink, lShrink, unit,
+                        date: new Date().toLocaleDateString(),
+                        recordType: "single"
+                    };
+                }
+            } else {
+                const newResult = {
+                    id: Date.now(), type, name, wash, temp, duration,
+                    bwW: !isNaN(bwW) ? bwW : null, 
+                    awW: !isNaN(awW) ? awW : null,
+                    bwL: !isNaN(bwL) ? bwL : null, 
+                    awL: !isNaN(awL) ? awL : null,
+                    wShrink, lShrink, unit,
+                    date: new Date().toLocaleDateString(),
+                    recordType: "single"
+                };
+                savedResults.push(newResult);
+            }
+            
+            localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+            closeSaveModal();
+            switchView('results', document.querySelectorAll('.nav-item')[1]);
+            
+            setTimeout(resetAllControls, 500);
+        }
+
+        // ========== 9. VISUALIZER ENGINE ==========
+        function updateVisualPreview(widthShrinkPerc, lengthShrinkPerc) {
+            // Original dimensions (before wash) are BASE_SIZE x BASE_SIZE
+            // Washed dimensions based on shrinkage percentages
+            let washedWidth = BASE_SIZE * (1 - lengthShrinkPerc / 100);
+            let washedHeight = BASE_SIZE * (1 - widthShrinkPerc / 100);
+
+            // Find the maximum dimension among original and washed
+            let maxDim = Math.max(BASE_SIZE, washedWidth, washedHeight);
+            let normFactor = BASE_SIZE / maxDim;
+
+            // Normalized sizes
+            let origNorm = BASE_SIZE * normFactor;
+            let washedNormWidth = washedWidth * normFactor;
+            let washedNormHeight = washedHeight * normFactor;
+
+            // Update original outline (dashed box)
+            const originalOutline = document.getElementById('originalOutline');
+            originalOutline.style.width = origNorm + 'px';
+            originalOutline.style.height = origNorm + 'px';
+
+            // Update washed preview (centered via left:50%, top:50%, transform:translate(-50%,-50%))
+            const scaledPreview = document.getElementById('scaledPreview');
+            scaledPreview.style.width = washedNormWidth + 'px';
+            scaledPreview.style.height = washedNormHeight + 'px';
+
+            // Update percentage labels with L= and W= prefixes
+            const lengthLabel = document.getElementById('lengthLabel');
+            const widthLabel = document.getElementById('widthLabel');
+
+            // Format percentage strings
+            const lengthText = lengthShrinkPerc > 0 ? `-${lengthShrinkPerc.toFixed(1)}%` : (lengthShrinkPerc < 0 ? `+${Math.abs(lengthShrinkPerc).toFixed(1)}%` : `0%`);
+            const widthText = widthShrinkPerc > 0 ? `-${widthShrinkPerc.toFixed(1)}%` : (widthShrinkPerc < 0 ? `+${Math.abs(widthShrinkPerc).toFixed(1)}%` : `0%`);
+
+            lengthLabel.textContent = `L= ${lengthText}`;
+            widthLabel.textContent = `W= ${widthText}`;
+
+            // scaledPreview is centered: left:50%, top:50%, transform:translate(-50%,-50%)
+            // So its rendered top-left corner is at:
+            //   actualLeft = (BASE_SIZE - washedNormWidth) / 2
+            //   actualTop  = (BASE_SIZE - washedNormHeight) / 2
+            const actualLeft = (BASE_SIZE - washedNormWidth) / 2;
+            const actualTop  = (BASE_SIZE - washedNormHeight) / 2;
+
+            // ── WIDTH LABEL ──────────────────────────────────────────────
+            // Vertical along the LEFT side of the fabric, centered vertically, text facing UP
+            widthLabel.style.left   = (actualLeft - 10) + 'px';
+            widthLabel.style.top    = (actualTop  + washedNormHeight / 2) + 'px';
+            // translateX(-100%) keeps it outside the left edge; rotate(180deg) flips
+            // writing-mode:vertical-rl from bottom-to-top (facing up)
+            widthLabel.style.transform = 'translateX(-100%) translateY(-50%) rotate(180deg)';
+
+            // ── LENGTH LABEL ─────────────────────────────────────────────
+            // Horizontal, centred below the BOTTOM edge of the fabric
+            lengthLabel.style.left  = (actualLeft + washedNormWidth / 2) + 'px';
+            lengthLabel.style.top   = (actualTop  + washedNormHeight + 10) + 'px';
+            lengthLabel.style.transform = 'translateX(-50%)';
+
+            // Color the labels
+            lengthLabel.style.color       = lengthShrinkPerc > 0 ? 'var(--danger)' : (lengthShrinkPerc < 0 ? 'var(--success)' : '#666');
+            lengthLabel.style.borderColor = lengthShrinkPerc > 0 ? 'var(--danger)' : (lengthShrinkPerc < 0 ? 'var(--success)' : '#ccc');
+            widthLabel.style.color        = widthShrinkPerc  > 0 ? 'var(--danger)' : (widthShrinkPerc  < 0 ? 'var(--success)' : '#666');
+            widthLabel.style.borderColor  = widthShrinkPerc  > 0 ? 'var(--danger)' : (widthShrinkPerc  < 0 ? 'var(--success)' : '#ccc');
+
+            // Update text displays below visualizer
+            const wDisplay = document.getElementById('widthDisplay');
+            const lDisplay = document.getElementById('lengthDisplay');
+            const wStatus  = document.getElementById('widthStatus');
+            const lStatus  = document.getElementById('lengthStatus');
+            
+            wDisplay.textContent = widthShrinkPerc > 0 ? `-${widthShrinkPerc.toFixed(1)}%` : (widthShrinkPerc < 0 ? `+${Math.abs(widthShrinkPerc).toFixed(1)}%` : `0.0%`);
+            lDisplay.textContent = lengthShrinkPerc > 0 ? `-${lengthShrinkPerc.toFixed(1)}%` : (lengthShrinkPerc < 0 ? `+${Math.abs(lengthShrinkPerc).toFixed(1)}%` : `0.0%`);
+
+            if (widthShrinkPerc > 0) {
+                wDisplay.style.color = 'var(--danger)';
+                wStatus.textContent  = 'SHRINKAGE';
+                wStatus.style.color  = 'var(--danger)';
+            } else if (widthShrinkPerc < 0) {
+                wDisplay.style.color = 'var(--success)';
+                wStatus.textContent  = 'STRETCH/GROWTH';
+                wStatus.style.color  = 'var(--success)';
+            } else {
+                wDisplay.style.color = 'var(--text-main)';
+                wStatus.textContent  = 'NO CHANGE';
+                wStatus.style.color  = 'var(--text-light)';
+            }
+
+            if (lengthShrinkPerc > 0) {
+                lDisplay.style.color = 'var(--danger)';
+                lStatus.textContent  = 'SHRINKAGE';
+                lStatus.style.color  = 'var(--danger)';
+            } else if (lengthShrinkPerc < 0) {
+                lDisplay.style.color = 'var(--success)';
+                lStatus.textContent  = 'STRETCH/GROWTH';
+                lStatus.style.color  = 'var(--success)';
+            } else {
+                lDisplay.style.color = 'var(--text-main)';
+                lStatus.textContent  = 'NO CHANGE';
+                lStatus.style.color  = 'var(--text-light)';
+            }
+
+            const avgChange = (widthShrinkPerc + lengthShrinkPerc) / 2;
+            const scaleInd  = document.getElementById('scaleIndicator');
+            
+            if (avgChange > 0) {
+                scaleInd.textContent    = `Avg Shrink: -${avgChange.toFixed(1)}%`;
+                scaleInd.style.background = 'var(--danger-light)';
+                scaleInd.style.color      = 'var(--danger)';
+            } else if (avgChange < 0) {
+                scaleInd.textContent    = `Avg Stretch: +${Math.abs(avgChange).toFixed(1)}%`;
+                scaleInd.style.background = '#E8F5E9';
+                scaleInd.style.color      = '#2E7D32';
+            } else {
+                scaleInd.textContent    = '0%';
+                scaleInd.style.background = '#F5F5F5';
+                scaleInd.style.color      = '#666';
+            }
+        }
+
+        function resetAllControls() {
+            editingRecordId = null; 
+            document.getElementById('dashboard-title').innerText = "Fabric Shrinkage Calculator";
+            document.getElementById('main-save-btn').innerHTML = `<i class="fas fa-save"></i> Save Result`;
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+            document.getElementById('modal-title').innerText = "Save Shrinkage Result";
+            document.getElementById('modal-submit-btn').innerText = "Save to Library";
+            document.getElementById('saveFabName').value = '';
+            
+            const typeSelect = document.getElementById('saveFabType');
+            typeSelect.selectedIndex = 0;
+            handleCategoryChange(); 
+
+            document.querySelectorAll('#calc-mode-shrinkage input[type="number"], #calc-mode-shrinkage input[type="text"]').forEach(input => input.value = '');
+            document.getElementById('calc-wash').value = '';
+            document.getElementById('smart-wash-tip').style.display = 'none';
+            
+            document.getElementById('widthInput').value = '0';
+            document.getElementById('lengthInput').value = '0';
+            updateVisualPreview(0, 0);
+
+            document.querySelectorAll('#calc-mode-quickmath input[type="number"]').forEach(input => input.value = '');
+            calculateQM2();
+            calculateQM3();
+
+            document.querySelectorAll('.advanced-test-table input[type="number"]').forEach(input => input.value = '');
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`adv-resL${i}`).textContent = '-';
+                document.getElementById(`adv-resW${i}`).textContent = '-';
+            }
+            document.getElementById('adv-avgL').textContent = '0.0%';
+            document.getElementById('adv-avgW').textContent = '0.0%';
+            document.getElementById('pat-cut-L').textContent = '-';
+            document.getElementById('pat-cut-W').textContent = '-';
+            advAverages = { L: 0, W: 0 };
+
+            // Reset roll table
+            resetRollTable();
+
+            document.getElementById('unit-select').value = 'inches';
+            updateUnits();
+        }
+
+        // ========== 10. SMART PRINT REPORT ==========
+        function triggerSmartPrint() {
+            if (currentView === 'calculator') {
+                // Remove class to trigger the Calculator UI print CSS
+                document.body.classList.remove('print-report-mode');
+                window.print();
+            } else if (currentView === 'results') {
+                // Add class to trigger the Database Report print CSS
+                document.body.classList.add('print-report-mode');
+                buildPrintReport();
+                window.print();
+            }
+        }
+
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('print-report-mode');
+        });
+
+        function buildPrintReport() {
+            const printContainer = document.getElementById('print-report-container');
+            
+            if (savedResults.length === 0) {
+                printContainer.innerHTML = `<h2 style="text-align:center;">No Data to Print</h2>`;
+                return;
+            }
+
+            let html = `
+                <div class="print-header">
+                    <h1>Fabric Shrinkage Database</h1>
+                    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                </div>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Fabric Name</th>
+                            <th>Process Details</th>
+                            <th>Before Wash (LxW)</th>
+                            <th>After Wash (LxW)</th>
+                            <th>Length Shrink %</th>
+                            <th>Width Shrink %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            const sortedForPrint = [...savedResults].sort((a, b) => (a.type || '').localeCompare(b.type || ''));
+
+            sortedForPrint.forEach(res => {
+                if (res.recordType === 'group') {
+                    html += `<tr><td colspan="7"><strong>Group: ${res.name}</strong> (${res.rolls.length} rolls) Avg L: ${res.avgL?.toFixed(1)}% Avg W: ${res.avgW?.toFixed(1)}%</td></tr>`;
+                } else if (res.recordType === 'shipment') {
+                    html += `<tr><td colspan="7"><strong>Shipment: ${res.name}</strong> (${res.groups.length} groups)</td></tr>`;
+                } else {
+                    const lColorClass = res.lShrink > 0 ? 'print-danger' : (res.lShrink < 0 ? 'print-success' : '');
+                    const wColorClass = res.wShrink > 0 ? 'print-danger' : (res.wShrink < 0 ? 'print-success' : '');
+                    
+                    const lText = res.lShrink > 0 ? `-${res.lShrink.toFixed(1)}%` : (res.lShrink < 0 ? `+${Math.abs(res.lShrink).toFixed(1)}%` : `0%`);
+                    const wText = res.wShrink > 0 ? `-${res.wShrink.toFixed(1)}%` : (res.wShrink < 0 ? `+${Math.abs(res.wShrink).toFixed(1)}%` : `0%`);
+
+                    const bwStr = (res.bwL ? res.bwL : '-') + ' x ' + (res.bwW ? res.bwW : '-');
+                    const awStr = (res.awL ? res.awL : '-') + ' x ' + (res.awW ? res.awW : '-');
+
+                    let processInfo = res.wash || 'N/A';
+                    if(res.temp) processInfo += ` | ${res.temp}`;
+                    if(res.duration) processInfo += ` | ${res.duration}`;
+
+                    html += `
+                        <tr>
+                            <td>${res.type}</td>
+                            <td><strong>${res.name}</strong></td>
+                            <td>${processInfo}</td>
+                            <td>${bwStr} ${res.unit}</td>
+                            <td>${awStr} ${res.unit}</td>
+                            <td class="${lColorClass}">${lText}</td>
+                            <td class="${wColorClass}">${wText}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            html += `</tbody></table>`;
+            printContainer.innerHTML = html;
+        }
+
+        // ========== 11. FUNCTIONS FOR MULTI-ROLL MANAGER ==========
+        function calcRollRow(rowNum) {
+            const bL = parseFloat(document.getElementById(`roll-bL${rowNum}`).value);
+            const bW = parseFloat(document.getElementById(`roll-bW${rowNum}`).value);
+            const aL = parseFloat(document.getElementById(`roll-aL${rowNum}`).value);
+            const aW = parseFloat(document.getElementById(`roll-aW${rowNum}`).value);
+
+            if (!isNaN(bL) && !isNaN(aL) && bL !== 0) {
+                let sL = ((bL - aL) / bL) * 100;
+                document.getElementById(`roll-sL${rowNum}`).textContent = sL.toFixed(1) + '%';
+            } else {
+                document.getElementById(`roll-sL${rowNum}`).textContent = '-';
+            }
+            if (!isNaN(bW) && !isNaN(aW) && bW !== 0) {
+                let sW = ((bW - aW) / bW) * 100;
+                document.getElementById(`roll-sW${rowNum}`).textContent = sW.toFixed(1) + '%';
+            } else {
+                document.getElementById(`roll-sW${rowNum}`).textContent = '-';
+            }
+
+            calcRollStats();
+        }
+
+        function calcRollStats() {
+            let sumL = 0, sumW = 0, countL = 0, countW = 0;
+            let minL = Infinity, maxL = -Infinity, minW = Infinity, maxW = -Infinity;
+
+            for (let i = 1; i <= 5; i++) {
+                const sLCell = document.getElementById(`roll-sL${i}`).textContent;
+                const sWCell = document.getElementById(`roll-sW${i}`).textContent;
+                const lVal = sLCell !== '-' ? parseFloat(sLCell) : NaN;
+                const wVal = sWCell !== '-' ? parseFloat(sWCell) : NaN;
+
+                if (!isNaN(lVal)) {
+                    sumL += lVal;
+                    countL++;
+                    if (lVal < minL) minL = lVal;
+                    if (lVal > maxL) maxL = lVal;
+                }
+                if (!isNaN(wVal)) {
+                    sumW += wVal;
+                    countW++;
+                    if (wVal < minW) minW = wVal;
+                    if (wVal > maxW) maxW = wVal;
+                }
+            }
+
+            const avgL = countL > 0 ? (sumL / countL) : 0;
+            const avgW = countW > 0 ? (sumW / countW) : 0;
+            const rangeL = (countL > 1) ? (maxL - minL) : 0;
+            const rangeW = (countW > 1) ? (maxW - minW) : 0;
+
+            document.getElementById('roll-avgL').textContent = avgL.toFixed(1) + '%';
+            document.getElementById('roll-avgW').textContent = avgW.toFixed(1) + '%';
+            document.getElementById('roll-rangeL').textContent = rangeL.toFixed(1) + '%';
+            document.getElementById('roll-rangeW').textContent = rangeW.toFixed(1) + '%';
+
+            const threshold = 1.5;
+            const recEl = document.getElementById('roll-recommendation');
+            if (countL === 0 && countW === 0) {
+                recEl.textContent = 'Recommendation: Enter data to analyze.';
+                recEl.style.color = 'var(--text-main)';
+            } else {
+                const highVariation = (rangeL > threshold) || (rangeW > threshold);
+                if (highVariation) {
+                    recEl.innerHTML = '⚠️ <strong>High Variation</strong> – Consider grouping rolls with similar shrinkage.';
+                    recEl.style.color = 'var(--danger)';
+                } else {
+                    recEl.innerHTML = '✅ <strong>Low Variation</strong> – Averaging is safe.';
+                    recEl.style.color = 'var(--success)';
+                }
+            }
+        }
+
+        // New function: apply original block dimensions to all rolls
+        function applyOriginalToAllRolls() {
+            const origLength = parseFloat(document.getElementById('roll-orig-length').value);
+            const origWidth = parseFloat(document.getElementById('roll-orig-width').value);
+
+            for (let i = 1; i <= 5; i++) {
+                if (!isNaN(origLength)) {
+                    document.getElementById(`roll-bL${i}`).value = origLength;
+                }
+                if (!isNaN(origWidth)) {
+                    document.getElementById(`roll-bW${i}`).value = origWidth;
+                }
+                // Trigger recalculation for each row
+                calcRollRow(i);
+            }
+        }
+
+        // New function: auto‑fill roll IDs
+        function autoFillRollIds() {
+            for (let i = 1; i <= 5; i++) {
+                const idField = document.getElementById(`roll-id${i}`);
+                if (idField) {
+                    idField.value = `R${i}`;
+                }
+            }
+        }
+
+        function groupSimilarRolls() {
+            const threshold = 1.0;
+            const groups = [];
+            const assigned = [];
+
+            // First, collect all complete rows
+            for (let i = 1; i <= 5; i++) {
+                if (assigned.includes(i)) continue;
+                const sL = document.getElementById(`roll-sL${i}`).textContent;
+                const sW = document.getElementById(`roll-sW${i}`).textContent;
+                if (sL === '-' || sW === '-') continue;
+
+                const lVal = parseFloat(sL);
+                const wVal = parseFloat(sW);
+                const newGroup = [i];
+                assigned.push(i);
+
+                for (let j = i+1; j <= 5; j++) {
+                    if (assigned.includes(j)) continue;
+                    const sLj = document.getElementById(`roll-sL${j}`).textContent;
+                    const sWj = document.getElementById(`roll-sW${j}`).textContent;
+                    if (sLj === '-' || sWj === '-') continue;
+                    const lValj = parseFloat(sLj);
+                    const wValj = parseFloat(sWj);
+                    if (Math.abs(lVal - lValj) <= threshold && Math.abs(wVal - wValj) <= threshold) {
+                        newGroup.push(j);
+                        assigned.push(j);
+                    }
+                }
+                groups.push(newGroup);
+            }
+
+            const groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+            const groupClasses = ['group-a', 'group-b', 'group-c', 'group-d', 'group-e', 'group-f', 'group-g', 'group-h', 'group-i', 'group-j'];
+
+            // Clear previous
+            for (let i = 1; i <= 5; i++) {
+                const rowEl = document.getElementById(`roll-row-${i}`);
+                rowEl.classList.remove(...groupClasses);
+                document.getElementById(`roll-group${i}`).textContent = '';
+            }
+
+            // Build currentRollGroups for shipment saving
+            currentRollGroups = [];
+
+            groups.forEach((g, idx) => {
+                const letter = groupLetters[idx % groupLetters.length];
+                const className = groupClasses[idx % groupClasses.length];
+                const rolls = [];
+                let sumL = 0, sumW = 0, countL = 0, countW = 0;
+                g.forEach(row => {
+                    const rowEl = document.getElementById(`roll-row-${row}`);
+                    rowEl.classList.add(className);
+                    document.getElementById(`roll-group${row}`).textContent = `Group ${letter}`;
+                    
+                    const id = document.getElementById(`roll-id${row}`).value;
+                    const bL = parseFloat(document.getElementById(`roll-bL${row}`).value);
+                    const bW = parseFloat(document.getElementById(`roll-bW${row}`).value);
+                    const aL = parseFloat(document.getElementById(`roll-aL${row}`).value);
+                    const aW = parseFloat(document.getElementById(`roll-aW${row}`).value);
+                    const sL = document.getElementById(`roll-sL${row}`).textContent;
+                    const sW = document.getElementById(`roll-sW${row}`).textContent;
+                    const sLVal = sL !== '-' ? parseFloat(sL) : null;
+                    const sWVal = sW !== '-' ? parseFloat(sW) : null;
+                    rolls.push({ id, bL, bW, aL, aW, sL: sLVal, sW: sWVal });
+                    if (sLVal !== null) { sumL += sLVal; countL++; }
+                    if (sWVal !== null) { sumW += sWVal; countW++; }
+                });
+                const avgL = countL > 0 ? sumL / countL : 0;
+                const avgW = countW > 0 ? sumW / countW : 0;
+                currentRollGroups.push({ letter, rows: g, rolls, avgL, avgW });
+            });
+        }
+
+        function transferRollAvgToMain() {
+            const avgL = parseFloat(document.getElementById('roll-avgL').textContent) || 0;
+            const avgW = parseFloat(document.getElementById('roll-avgW').textContent) || 0;
+
+            if (avgL !== 0) {
+                document.getElementById('calc-bw-l').value = 100;
+                document.getElementById('calc-aw-l').value = (100 * (1 - avgL / 100)).toFixed(1);
+            }
+            if (avgW !== 0) {
+                document.getElementById('calc-bw-w').value = 100;
+                document.getElementById('calc-aw-w').value = (100 * (1 - avgW / 100)).toFixed(1);
+            }
+
+            switchCalcMode('shrinkage', document.querySelectorAll('.tab-btn')[0]);
+            triggerCalculation();
+        }
+
+        function resetRollTable() {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`roll-id${i}`).value = '';
+                document.getElementById(`roll-bL${i}`).value = '';
+                document.getElementById(`roll-bW${i}`).value = '';
+                document.getElementById(`roll-aL${i}`).value = '';
+                document.getElementById(`roll-aW${i}`).value = '';
+                document.getElementById(`roll-sL${i}`).textContent = '-';
+                document.getElementById(`roll-sW${i}`).textContent = '-';
+                document.getElementById(`roll-group${i}`).textContent = '';
+                document.getElementById(`roll-row-${i}`).classList.remove('group-a', 'group-b', 'group-c', 'group-d', 'group-e', 'group-f', 'group-g', 'group-h', 'group-i', 'group-j');
+            }
+            // Also clear the new original dimension inputs
+            document.getElementById('roll-orig-length').value = '';
+            document.getElementById('roll-orig-width').value = '';
+            calcRollStats();
+            currentRollGroups = [];
+        }
+
+        // Group saving functions
+        function openSaveGroupModal() {
+            const rolls = [];
+            for (let i = 1; i <= 5; i++) {
+                const id = document.getElementById(`roll-id${i}`).value;
+                const bL = parseFloat(document.getElementById(`roll-bL${i}`).value);
+                const bW = parseFloat(document.getElementById(`roll-bW${i}`).value);
+                const aL = parseFloat(document.getElementById(`roll-aL${i}`).value);
+                const aW = parseFloat(document.getElementById(`roll-aW${i}`).value);
+                const sL = document.getElementById(`roll-sL${i}`).textContent;
+                const sW = document.getElementById(`roll-sW${i}`).textContent;
+                if (id && !isNaN(bL) && !isNaN(bW) && !isNaN(aL) && !isNaN(aW)) {
+                    rolls.push({
+                        id,
+                        bL, bW, aL, aW,
+                        sL: sL !== '-' ? parseFloat(sL) : null,
+                        sW: sW !== '-' ? parseFloat(sW) : null
+                    });
+                }
+            }
+            if (rolls.length === 0) {
+                alert('No complete roll data to save.');
+                return;
+            }
+
+            let summary = '<ul>';
+            rolls.forEach(r => {
+                summary += `<li>${r.id}: L ${r.sL?.toFixed(1) || '?'}%, W ${r.sW?.toFixed(1) || '?'}%</li>`;
+            });
+            summary += '</ul>';
+            document.getElementById('groupRollsSummary').innerHTML = summary;
+
+            document.getElementById('saveGroupModal').classList.add('active');
+        }
+
+        function closeSaveGroupModal() {
+            document.getElementById('saveGroupModal').classList.remove('active');
+            document.getElementById('saveGroupName').value = '';
+        }
+
+        function saveRollGroup() {
+            const groupName = document.getElementById('saveGroupName').value;
+            if (!groupName) {
+                alert('Please enter a group name.');
+                return;
+            }
+
+            const rolls = [];
+            let sumL = 0, sumW = 0, countL = 0, countW = 0;
+            for (let i = 1; i <= 5; i++) {
+                const id = document.getElementById(`roll-id${i}`).value;
+                const bL = parseFloat(document.getElementById(`roll-bL${i}`).value);
+                const bW = parseFloat(document.getElementById(`roll-bW${i}`).value);
+                const aL = parseFloat(document.getElementById(`roll-aL${i}`).value);
+                const aW = parseFloat(document.getElementById(`roll-aW${i}`).value);
+                const sL = document.getElementById(`roll-sL${i}`).textContent;
+                const sW = document.getElementById(`roll-sW${i}`).textContent;
+                if (id && !isNaN(bL) && !isNaN(bW) && !isNaN(aL) && !isNaN(aW)) {
+                    const sLVal = sL !== '-' ? parseFloat(sL) : null;
+                    const sWVal = sW !== '-' ? parseFloat(sW) : null;
+                    rolls.push({
+                        id, bL, bW, aL, aW,
+                        sL: sLVal, sW: sWVal
+                    });
+                    if (sLVal !== null) { sumL += sLVal; countL++; }
+                    if (sWVal !== null) { sumW += sWVal; countW++; }
+                }
+            }
+
+            const avgL = countL > 0 ? sumL / countL : 0;
+            const avgW = countW > 0 ? sumW / countW : 0;
+
+            const newGroup = {
+                id: Date.now(),
+                recordType: 'group',
+                name: groupName,
+                rolls: rolls,
+                avgL: avgL,
+                avgW: avgW,
+                date: new Date().toLocaleDateString()
+            };
+            savedResults.push(newGroup);
+            localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+            closeSaveGroupModal();
+            switchView('results', document.querySelectorAll('.nav-item')[1]);
+        }
+
+        // ========== 12. SHIPMENT SAVING FUNCTIONS ==========
+        function openSaveShipmentModal() {
+            if (currentRollGroups.length === 0) {
+                alert('Please group similar rolls first.');
+                return;
+            }
+
+            let summary = '<ul>';
+            currentRollGroups.forEach(g => {
+                summary += `<li>Group ${g.letter}: ${g.rolls.length} rolls (Avg L: ${g.avgL.toFixed(1)}%, Avg W: ${g.avgW.toFixed(1)}%)</li>`;
+            });
+            summary += '</ul>';
+            document.getElementById('shipmentGroupsSummary').innerHTML = summary;
+
+            document.getElementById('saveShipmentModal').classList.add('active');
+        }
+
+        function closeSaveShipmentModal() {
+            document.getElementById('saveShipmentModal').classList.remove('active');
+            document.getElementById('saveShipmentName').value = '';
+        }
+
+        function saveShipment() {
+            const shipmentName = document.getElementById('saveShipmentName').value;
+            if (!shipmentName) {
+                alert('Please enter a shipment name.');
+                return;
+            }
+            if (currentRollGroups.length === 0) {
+                alert('No groups to save.');
+                return;
+            }
+
+            const shipment = {
+                id: Date.now(),
+                recordType: 'shipment',
+                name: shipmentName,
+                groups: currentRollGroups.map(g => ({
+                    letter: g.letter,
+                    rolls: g.rolls,
+                    avgL: g.avgL,
+                    avgW: g.avgW
+                })),
+                date: new Date().toLocaleDateString()
+            };
+            savedResults.push(shipment);
+            localStorage.setItem('shrinkStudioResults', JSON.stringify(savedResults));
+            closeSaveShipmentModal();
+            switchView('results', document.querySelectorAll('.nav-item')[1]);
+        }
+
+        window.onload = () => {
+            populateFabricCategories();
+            renderResults();
+            requestAnimationFrame(() => updateVisualPreview(0, 0));
+        };
+    </script>
+</body>
+</html>
