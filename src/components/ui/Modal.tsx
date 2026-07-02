@@ -30,8 +30,12 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   return (
     <div className="modal-overlay active" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        {title && <h3>{title}</h3>}
-        {children}
+        {title && (
+          <div className="modal-header">
+            <h3>{title}</h3>
+          </div>
+        )}
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );

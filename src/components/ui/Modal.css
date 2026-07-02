@@ -1,15 +1,16 @@
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 10000; /* above mobile bottom nav (9999) and drawers */
   overflow-y: auto;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .modal-overlay.active {
@@ -18,15 +19,51 @@
 
 .modal-content {
   background: white;
-  padding: 30px;
   border-radius: 12px;
   width: 400px;
-  max-width: 90%;
+  max-width: 100%;
   margin: auto;
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: 85dvh;          /* respects mobile address bar; never taller than screen */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-.modal-content h3 {
-  margin-bottom: 20px;
+/* Static header — always visible */
+.modal-header {
+  flex-shrink: 0;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
 }
+
+.modal-header h3 {
+  margin: 0;
+}
+
+/* Scrollable body — only this section scrolls when content is tall */
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+/* When a pinned footer exists, remove body bottom padding so footer sits flush */
+.modal-body:has(.modal-actions) {
+  padding-bottom: 0;
+}
+
+/* Pinned footer — action buttons stay visible at the bottom */
+.modal-body .modal-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 20px -24px 0 -24px;
+  padding: 16px 24px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: white;
+  border-top: 1px solid var(--border-color);
+  z-index: 2;
+}
+

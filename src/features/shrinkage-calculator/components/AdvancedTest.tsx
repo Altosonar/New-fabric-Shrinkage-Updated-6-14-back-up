@@ -19,7 +19,7 @@ interface RowData {
   sW: string;
 }
 
-const makeBlankRow = (): RowData => ({ bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-' });
+const makeBlankRow = (): RowData => ({ bL: '20', bW: '20', aL: '20', aW: '20', sL: '-', sW: '-' });
 
 const defaultRows: RowData[] = [
   makeBlankRow(),
@@ -43,16 +43,7 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   // Two-part accordion: 'data' (table) expanded by default, 'insights' collapsed
   const [advPart, setAdvPart] = useState<'data' | 'insights'>('data');
 
-  // ── Auto-fill bL / bW from Row 1 into all other rows ────────────────────────
-  useEffect(() => {
-    if (rows.length > 0 && (rows[0].bL || rows[0].bW)) {
-      setRows(prev => prev.map((row, i) => {
-        if (i === 0) return row;
-        return { ...row, bL: prev[0].bL, bW: prev[0].bW };
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows[0]?.bL, rows[0]?.bW]);
+  // ── Cascading auto-fill handled in handleRowChange (see below) ─────────────
 
   // ── Calculate all shrinkage values & averages ────────────────────────────────
   useEffect(() => {
@@ -127,20 +118,30 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
 
   // ── Row mutations ────────────────────────────────────────────────────────────
   const handleRowChange = (rowIndex: number, field: keyof RowData, value: string) => {
+    const cascadeFields: (keyof RowData)[] = ['bL', 'bW', 'aL', 'aW'];
     setRows(prev => {
-      const next = [...prev];
-      next[rowIndex] = { ...next[rowIndex], [field]: value };
-      return next;
+      const prevTop = prev[0]?.[field];
+      return prev.map((row, i) => {
+        if (i === rowIndex) return { ...row, [field]: value };
+        // Cascade the top row's Before/After down to rows that still hold the old
+        // top value (auto-filled / default), preserving manually-edited samples.
+        if (rowIndex === 0 && cascadeFields.includes(field) && (row[field] === prevTop || row[field] === '')) {
+          return { ...row, [field]: value };
+        }
+        return row;
+      });
     });
   };
 
   const handleAddRow = () => {
     setRows(prev => {
       const newRow = makeBlankRow();
-      // Auto-fill bL/bW from row 0
+      // Inherit Before/After from row 0 (cascading default)
       if (prev.length > 0) {
         newRow.bL = prev[0].bL;
         newRow.bW = prev[0].bW;
+        newRow.aL = prev[0].aL;
+        newRow.aW = prev[0].aW;
       }
       return [...prev, newRow];
     });

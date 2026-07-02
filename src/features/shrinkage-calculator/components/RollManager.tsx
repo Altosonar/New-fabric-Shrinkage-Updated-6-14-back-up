@@ -25,11 +25,11 @@ interface RollRow {
 }
 
 const defaultRows: RollRow[] = [
-  { order: 1, id: 'R1', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 2, id: 'R2', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 3, id: 'R3', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 4, id: 'R4', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 5, id: 'R5', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
+  { order: 1, id: 'R1', bL: '20', bW: '20', aL: '20', aW: '20', sL: '-', sW: '-', group: '' },
+  { order: 2, id: 'R2', bL: '20', bW: '20', aL: '20', aW: '20', sL: '-', sW: '-', group: '' },
+  { order: 3, id: 'R3', bL: '20', bW: '20', aL: '20', aW: '20', sL: '-', sW: '-', group: '' },
+  { order: 4, id: 'R4', bL: '20', bW: '20', aL: '20', aW: '20', sL: '-', sW: '-', group: '' },
+  { order: 5, id: 'R5', bL: '20', bW: '20', aL: '20', aW: '20', sL: '-', sW: '-', group: '' },
 ];
 
 export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
@@ -65,9 +65,19 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
 
   // ── Row mutations ────────────────────────────────────────────────────────────
   const handleRowChange = (rowIndex: number, field: keyof RollRow, value: string) => {
-    const newRows = [...rows];
-    newRows[rowIndex] = { ...newRows[rowIndex], [field]: value };
-    setRows(newRows);
+    const cascadeFields: (keyof RollRow)[] = ['bL', 'bW', 'aL', 'aW'];
+    setRows(prev => {
+      const prevTop = prev[0]?.[field];
+      return prev.map((row, i) => {
+        if (i === rowIndex) return { ...row, [field]: value };
+        // Cascade from the top row down to rows that still hold the old top value
+        // (i.e. auto-filled / default), preserving any manually-edited rows.
+        if (rowIndex === 0 && cascadeFields.includes(field) && (row[field] === prevTop || row[field] === '')) {
+          return { ...row, [field]: value };
+        }
+        return row;
+      });
+    });
   };
 
   // Auto-populate bL/bW from first row on blur
@@ -87,8 +97,13 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
 
   const handleAddRow = () => {
     const nextOrder = nextOrderRef.current++;
-    const newRow: RollRow = { order: nextOrder, id: '', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' };
     setRows(prev => {
+      const top = prev[0];
+      const newRow: RollRow = {
+        order: nextOrder, id: '',
+        bL: top?.bL ?? '', bW: top?.bW ?? '', aL: top?.aL ?? '', aW: top?.aW ?? '',
+        sL: '-', sW: '-', group: ''
+      };
       const newRows = [...prev, newRow];
       const sorted = newRows.sort((a, b) => a.order - b.order);
       return sorted.map((row, idx) => ({ ...row, id: row.id || `R${idx + 1}` }));
