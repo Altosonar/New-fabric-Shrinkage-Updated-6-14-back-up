@@ -447,6 +447,16 @@ export function ResultsPage() {
   const [activeSection, setActiveSection] = useState<string>('all');
   const [showFolderMgr, setShowFolderMgr] = useState(false);
   const [showTagMgr, setShowTagMgr] = useState(false);
+  const [showOverflow, setShowOverflow] = useState(false);
+  const overflowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) setShowOverflow(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     document.body.dataset.currentView = 'results';
@@ -541,15 +551,51 @@ export function ResultsPage() {
     <div className="view-section active">
       <div className="page-header">
         <h1>Fabric Shrinkage Database</h1>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Button variant="outline" icon={<i className="fas fa-folder"></i>} onClick={() => setShowFolderMgr(true)}>Folders</Button>
-          <Button variant="outline" icon={<i className="fas fa-tags"></i>} onClick={() => setShowTagMgr(true)}>Tags</Button>
-          <Button variant="outline" icon={<i className="fas fa-download"></i>} onClick={handleExport}>Export</Button>
-          <label className="btn btn-outline" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 6, border: '1px solid var(--border-color)', fontWeight: 600, fontSize: 13 }}>
-            <i className="fas fa-upload"></i> Import
-            <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
-          </label>
-          <Button variant="danger" icon={<i className="fas fa-trash"></i>} onClick={deleteAll}>Delete All</Button>
+        <div className="res-header-actions">
+          {/* Primary actions — always visible */}
+          <div className="res-header-secondary" style={{ display: 'contents' }}>
+            <Button variant="outline" icon={<i className="fas fa-folder"></i>} onClick={() => setShowFolderMgr(true)}>Folders</Button>
+            <Button variant="outline" icon={<i className="fas fa-tags"></i>} onClick={() => setShowTagMgr(true)}>Tags</Button>
+            <Button variant="outline" icon={<i className="fas fa-download"></i>} onClick={handleExport}>Export</Button>
+            <label className="btn btn-outline" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 6, border: '1px solid var(--border-color)', fontWeight: 600, fontSize: 13 }}>
+              <i className="fas fa-upload"></i> Import
+              <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+            </label>
+            <Button variant="danger" icon={<i className="fas fa-trash"></i>} onClick={deleteAll}>Delete All</Button>
+          </div>
+          {/* Mobile ••• overflow menu */}
+          <div className="res-overflow-menu" ref={overflowRef}>
+            <button
+              className="res-header-overflow-btn stg-btn stg-btn-outline"
+              onClick={() => setShowOverflow(v => !v)}
+              aria-label="More actions"
+              style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}
+            >
+              <i className="fas fa-ellipsis-v"></i>
+            </button>
+            {showOverflow && (
+              <div className="res-overflow-dropdown">
+                <button className="res-overflow-item" onClick={() => { setShowFolderMgr(true); setShowOverflow(false); }}>
+                  <i className="fas fa-folder"></i> Folders
+                </button>
+                <button className="res-overflow-item" onClick={() => { setShowTagMgr(true); setShowOverflow(false); }}>
+                  <i className="fas fa-tags"></i> Tags
+                </button>
+                <div className="res-overflow-divider" />
+                <button className="res-overflow-item" onClick={() => { handleExport(); setShowOverflow(false); }}>
+                  <i className="fas fa-download"></i> Export ({settings.exportFormat.toUpperCase()})
+                </button>
+                <label className="res-overflow-item" style={{ cursor: 'pointer' }}>
+                  <i className="fas fa-upload"></i> Import JSON
+                  <input type="file" accept=".json" style={{ display: 'none' }} onChange={e => { handleImport(e); setShowOverflow(false); }} />
+                </label>
+                <div className="res-overflow-divider" />
+                <button className="res-overflow-item res-overflow-item-danger" onClick={() => { setShowOverflow(false); deleteAll(); }}>
+                  <i className="fas fa-trash"></i> Delete All
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

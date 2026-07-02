@@ -471,6 +471,14 @@ export function CalculatorPage() {
                 <div className="more-drawer-title">More</div>
                 <button
                   type="button"
+                  className={`more-drawer-btn ${calcMode === 'advanced' ? 'active' : ''}`}
+                  onClick={() => { setCalcMode('advanced'); setMoreOpen(false); }}
+                >
+                  <i className="fas fa-flask"></i>
+                  <span>Advanced Test</span>
+                </button>
+                <button
+                  type="button"
                   className={`more-drawer-btn ${calcMode === 'wash' ? 'active' : ''}`}
                   onClick={() => { setCalcMode('wash'); setMoreOpen(false); }}
                 >
@@ -508,7 +516,7 @@ export function CalculatorPage() {
               </div>
             </>
           )}
-          {/* 4 primary items + More button */}
+          {/* 4 primary items + Hamburger menu */}
           <div className="mobile-nav-items">
             <button
               type="button"
@@ -528,14 +536,6 @@ export function CalculatorPage() {
             </button>
             <button
               type="button"
-              className={`mobile-nav-btn ${calcMode === 'advanced' ? 'active' : ''}`}
-              onClick={() => { setCalcMode('advanced'); setMoreOpen(false); }}
-            >
-              <i className="fas fa-flask"></i>
-              <span>Advanced</span>
-            </button>
-            <button
-              type="button"
               className={`mobile-nav-btn ${calcMode === 'rollmgr' ? 'active' : ''}`}
               onClick={() => { setCalcMode('rollmgr'); setMoreOpen(false); }}
             >
@@ -544,11 +544,11 @@ export function CalculatorPage() {
             </button>
             <button
               type="button"
-              className={`mobile-nav-btn ${moreOpen || calcMode === 'results' ? 'active' : ''}`}
+              className={`mobile-nav-btn ${moreOpen || ['wash','advanced','results'].includes(calcMode) ? 'active' : ''}`}
               onClick={() => setMoreOpen(prev => !prev)}
             >
-              <i className={`fas ${moreOpen ? 'fa-times' : 'fa-ellipsis-h'}`}></i>
-              <span>More</span>
+              <i className={`fas ${moreOpen ? 'fa-times' : 'fa-bars'}`}></i>
+              <span>Menu</span>
             </button>
           </div>
         </>,

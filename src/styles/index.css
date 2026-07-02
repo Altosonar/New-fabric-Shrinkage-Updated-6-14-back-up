@@ -38,6 +38,7 @@
 html {
   width: 100%;
   height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -262,22 +263,23 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 6px 2px;
-  min-height: 52px;
+  gap: 3px;
+  padding: 6px 4px;
+  min-height: 56px;
+  min-width: 48px;
   border: none;
   background: var(--secondary);
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   color: var(--text-light);
   transition: all 0.18s;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   font-family: inherit;
 }
 
 .mobile-nav-btn i {
-  font-size: 17px;
+  font-size: 20px;
   display: block;
 }
 
@@ -1836,7 +1838,8 @@ body {
     margin: 0;
     height: auto;
     min-height: 100dvh;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     align-items: flex-start;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -1882,10 +1885,13 @@ body {
 
   /* Main content — padded to clear fixed elements below */
   .main-content {
-    padding: 8px 8px 0 8px;
+    padding: 12px 12px 0 12px;
     max-height: none;
     min-height: calc(100dvh - env(safe-area-inset-bottom, 0px));
     padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* Hide empty page title */
@@ -3274,4 +3280,142 @@ body {
   .stg-danger-input { max-width: 100%; }
   .stg-danger-input-row { flex-direction: column; align-items: stretch; }
   .stg-danger-input-row .stg-btn { justify-content: center; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MOBILE OVERFLOW FIXES & RESULTS HEADER OVERFLOW MENU
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Results header overflow menu (•••) ─────────────────────────────────────── */
+.res-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+/* On desktop show all buttons */
+.res-header-overflow-btn { display: none; }
+.res-header-secondary { display: contents; }
+
+/* Overflow dropdown */
+.res-overflow-menu {
+  position: relative;
+  display: inline-flex;
+}
+.res-overflow-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+  z-index: 300;
+  min-width: 190px;
+  overflow: hidden;
+}
+.res-overflow-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  color: var(--text-main);
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.res-overflow-item:hover { background: var(--secondary); }
+.res-overflow-item-danger { color: var(--danger); }
+.res-overflow-item-danger:hover { background: var(--danger-light); }
+.res-overflow-item i { width: 16px; text-align: center; }
+.res-overflow-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+
+@media screen and (max-width: 768px) {
+  /* On mobile hide individual buttons, show ••• button */
+  .res-header-secondary { display: none !important; }
+  .res-header-overflow-btn { display: inline-flex !important; }
+
+  /* Settings layout overflow fix */
+  .stg-layout {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  .stg-tab-content {
+    overflow-x: hidden;
+    width: 100%;
+    min-width: 0;
+  }
+  .stg-section {
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .stg-toggle-wrap {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .stg-toggle-label {
+    font-size: 12px;
+  }
+  .stg-select {
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .stg-number-input {
+    width: 70px;
+  }
+  .stg-preview-box {
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Results page mobile layout */
+  .res-layout {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  .res-main {
+    overflow-x: hidden;
+    min-width: 0;
+    width: 100%;
+  }
+  .res-filter-bar {
+    overflow: hidden;
+  }
+  .res-grid {
+    overflow-x: hidden;
+  }
+  .res-card {
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .res-detail-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  
+  /* Results page header: stack h1 and actions vertically */
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .page-header h1 {
+    font-size: 16px !important;
+    display: block !important;
+  }
+  .res-header-actions {
+    width: 100%;
+  }
 }
