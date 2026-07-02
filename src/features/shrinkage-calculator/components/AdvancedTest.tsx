@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { useResults } from '../../../store/ResultsContext';
+import { useDialog } from '../../../components/ui/DialogProvider';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { calculateShrinkage, calculateAverage, calculateCutSize } from '../../../utils/calculations';
 
@@ -29,6 +30,7 @@ const defaultRows: RowData[] = [
 
 export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   const { addResult } = useResults();
+  const { showAlert, showConfirm } = useDialog();
   const [rows, setRows] = useLocalStorage<RowData[]>('advancedTestRows_v2', defaultRows);
   const [avgL, setAvgL] = useState(0);
   const [avgW, setAvgW] = useState(0);
@@ -153,22 +155,24 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   };
 
   const handleClearAll = () => {
-    if (confirm('Are you sure you want to clear all sample data?')) {
-      setRows(defaultRows);
-      setDesiredL('');
-      setDesiredW('');
-      setPatternApplied(false);
-    }
+    showConfirm('Are you sure you want to clear all sample data?').then(ok => {
+      if (ok) {
+        setRows(defaultRows);
+        setDesiredL('');
+        setDesiredW('');
+        setPatternApplied(false);
+      }
+    });
   };
 
   // ── Apply Average to Pattern Block ───────────────────────────────────────────
   const handleApplyToPattern = () => {
     if (avgL === 0 && avgW === 0) {
-      alert('Please enter at least one complete sample (before & after measurements) first.');
+      showAlert('Please enter at least one complete sample (before & after measurements) first.');
       return;
     }
     if (!desiredL && !desiredW) {
-      alert('Please enter your desired finished length and/or width in the Pattern Cutting Adjustment section above.');
+      showAlert('Please enter your desired finished length and/or width in the Pattern Cutting Adjustment section above.');
       return;
     }
     setPatternApplied(true);
@@ -182,7 +186,7 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   // ── Save to Library ──────────────────────────────────────────────────────────
   const openSaveModal = () => {
     if (avgL === 0 && avgW === 0) {
-      alert('Please enter sample data before saving.');
+      showAlert('Please enter sample data before saving.');
       return;
     }
     setSaveModalOpen(true);
@@ -190,7 +194,7 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
 
   const handleSave = () => {
     if (!sampleName) {
-      alert('Please enter a sample name.');
+      showAlert('Please enter a sample name.');
       return;
     }
 

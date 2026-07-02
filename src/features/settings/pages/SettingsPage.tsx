@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../../../hooks/useSettings';
 import { useResults } from '../../../store/ResultsContext';
+import { useDialog } from '../../../components/ui/DialogProvider';
 import { WashProfile, AppSettings } from '../../../types';
 import { WASH_PROFILES_KEY } from '../../../utils/constants';
 
@@ -466,6 +467,7 @@ const TABS = [
 export function SettingsPage() {
   const navigate = useNavigate();
   const { settings, updateSetting, resetSettings } = useSettings();
+  const { showConfirm } = useDialog();
   const [activeTab, setActiveTab] = useState('preferences');
 
   return (
@@ -473,7 +475,7 @@ export function SettingsPage() {
       <div className="page-header">
         <h1><i className="fas fa-cog" style={{ marginRight: 10 }}></i>Settings</h1>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="stg-btn stg-btn-outline" onClick={() => { if (confirm('Reset all settings to factory defaults?')) resetSettings(); }}>
+          <button className="stg-btn stg-btn-outline" onClick={() => { showConfirm('Reset all settings to factory defaults?').then(ok => { if (ok) resetSettings(); }); }}>
             <i className="fas fa-undo"></i> Reset Defaults
           </button>
           <button className="stg-btn stg-btn-outline" onClick={() => navigate(-1)}>

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useResults } from '../../../store/ResultsContext';
 import { useSettings } from '../../../hooks/useSettings';
+import { useDialog } from '../../../components/ui/DialogProvider';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Modal } from '../../../components/ui/Modal';
@@ -20,6 +21,7 @@ export function CalculatorPage() {
   const navigate = useNavigate();
   const { state, addResult, updateResult, setEditingId } = useResults();
   const { settings } = useSettings();
+  const { showAlert } = useDialog();
   const [calcMode, setCalcMode] = useState<CalcMode>('shrinkage');
   const [unit, setUnit] = useState<Unit>('inches');
   const [editingId, setEditingIdLocal] = useState<number | null>(null);
@@ -145,7 +147,7 @@ export function CalculatorPage() {
   const handleCalculate = useCallback(() => {
     const validation = validateMeasurements(bwW, awW, bwL, awL);
     if (!validation.valid) {
-      alert(`⚠️ ${validation.message}`);
+      showAlert(validation.message, 'Validation Error');
       return;
     }
     recalculate(bwW, awW, bwL, awL);
@@ -180,7 +182,7 @@ export function CalculatorPage() {
   // Open save modal
   const openSaveModal = () => {
     if (!bwW && !awW && !bwL && !awL) {
-      alert("⚠️ Please enter measurements and click 'Calculate Shrinkage' before saving.");
+      showAlert("Please enter measurements and click 'Calculate Shrinkage' before saving.", 'Missing Data');
       return;
     }
     handleCalculate();
@@ -190,7 +192,7 @@ export function CalculatorPage() {
   // Save result
   const handleSave = () => {
     if (!fabricName) {
-      alert("Please enter a Specific Fabric Name to save.");
+      showAlert('Please enter a Specific Fabric Name to save.');
       return;
     }
 
@@ -372,7 +374,7 @@ export function CalculatorPage() {
   // Auto-fill wash parameters from the selected wash process standard values
   const handleAutoFillWashParams = () => {
     if (!wash || wash === 'Other') {
-      alert('Please select a wash process first.');
+      showAlert('Please select a wash process first.');
       return;
     }
     const opt = washProcessOptions.find(o => o.value === wash);

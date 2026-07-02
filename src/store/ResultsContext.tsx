@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { SavedResult, FabricResult, RollGroup, Shipment, SampleTest, Unit, Folder, Tag } from '../types';
 import { STORAGE_KEY } from '../utils/constants';
+import { useDialog } from '../components/ui/DialogProvider';
 
 const FOLDERS_KEY = 'shrinkage_folders';
 const TAGS_KEY = 'shrinkage_tags';
@@ -275,16 +276,18 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
     dispatch({ type: 'DELETE_RESULT', payload: id });
   };
 
+  const { showConfirm } = useDialog();
+
   const deleteAll = () => {
-    if (confirm('Delete all saved results? This cannot be undone.')) {
-      dispatch({ type: 'DELETE_ALL' });
-    }
+    showConfirm('Delete all saved results? This cannot be undone.').then(ok => {
+      if (ok) dispatch({ type: 'DELETE_ALL' });
+    });
   };
 
   const importResults = (results: SavedResult[]) => {
-    if (confirm('Replace current library with imported data? Click OK to replace, Cancel to keep existing.')) {
-      dispatch({ type: 'IMPORT_RESULTS', payload: results });
-    }
+    showConfirm('Replace current library with imported data? Click OK to replace, Cancel to keep existing.').then(ok => {
+      if (ok) dispatch({ type: 'IMPORT_RESULTS', payload: results });
+    });
   };
 
   const exportResults = (): string => {
@@ -316,10 +319,12 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
   const clearSelection = () => dispatch({ type: 'CLEAR_SELECTION' });
   const bulkDelete = () => {
     if (state.selectedIds.size === 0) return;
-    if (confirm(`Delete ${state.selectedIds.size} selected result(s)? This cannot be undone.`)) {
-      state.selectedIds.forEach(id => dispatch({ type: 'DELETE_RESULT', payload: id }));
-      dispatch({ type: 'CLEAR_SELECTION' });
-    }
+    showConfirm(`Delete ${state.selectedIds.size} selected result(s)? This cannot be undone.`).then(ok => {
+      if (ok) {
+        state.selectedIds.forEach(id => dispatch({ type: 'DELETE_RESULT', payload: id }));
+        dispatch({ type: 'CLEAR_SELECTION' });
+      }
+    });
   };
   const bulkExport = (ids: number[]): string => {
     const selected = state.results.filter(r => ids.includes(r.id));

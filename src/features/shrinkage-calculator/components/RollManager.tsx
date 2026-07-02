@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { useResults } from '../../../store/ResultsContext';
+import { useDialog } from '../../../components/ui/DialogProvider';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { calculateShrinkage, calculateAverage, calculateRange, groupSimilarRolls, RollStats, GroupedRoll } from '../../../utils/calculations';
 import { GROUP_THRESHOLD, RECOMMENDATION_THRESHOLD, groupColorClasses, groupColors } from '../../../utils/constants';
@@ -34,6 +35,7 @@ const defaultRows: RollRow[] = [
 
 export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   const { addResult } = useResults();
+  const { showAlert, showConfirm } = useDialog();
   const nextOrderRef = useRef(6);
   const lastClearTokenRef = useRef<string | null>(null);
   const [rows, setRows] = useLocalStorage<RollRow[]>('rollManagerRows_v2', defaultRows);
@@ -316,15 +318,17 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   }, []);
 
   const handleClearAll = () => {
-    if (confirm('Are you sure you want to clear all roll data?')) {
-      setRows(defaultRows);
-      setGroupedRolls([]);
-      setSamplingTotal('50');
-      setSamplingLots('3');
-      setSamplingStd('10pct');
-      setDeletedStack([]);
-      nextOrderRef.current = 6;
-    }
+    showConfirm('Are you sure you want to clear all roll data?').then(ok => {
+      if (ok) {
+        setRows(defaultRows);
+        setGroupedRolls([]);
+        setSamplingTotal('50');
+        setSamplingLots('3');
+        setSamplingStd('10pct');
+        setDeletedStack([]);
+        nextOrderRef.current = 6;
+      }
+    });
   };
 
   useEffect(() => {
@@ -347,14 +351,14 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   const openSaveGroupModal = () => {
     const completeRolls = rows.filter(r => r.id && r.bL && r.bW && r.aL && r.aW);
     if (completeRolls.length === 0) {
-      alert('No complete roll data to save.');
+      showAlert('No complete roll data to save.');
       return;
     }
     setSaveGroupModalOpen(true);
   };
 
   const handleSaveGroup = () => {
-    if (!groupName) { alert('Please enter a group name.'); return; }
+    if (!groupName) { showAlert('Please enter a group name.'); return; }
     const rolls: Roll[] = rows
       .filter(r => r.id && r.bL && r.bW && r.aL && r.aW)
       .map(r => ({
@@ -377,14 +381,14 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   // ── Save Shipment ────────────────────────────────────────────────────────────
   const openSaveShipmentModal = () => {
     if (groupedRolls.length === 0) {
-      alert('No groups found yet. Enter measurements for at least 2 rolls first.');
+      showAlert('No groups found yet. Enter measurements for at least 2 rolls first.');
       return;
     }
     setSaveShipmentModalOpen(true);
   };
 
   const handleSaveShipment = () => {
-    if (!shipmentName) { alert('Please enter a shipment name.'); return; }
+    if (!shipmentName) { showAlert('Please enter a shipment name.'); return; }
     const shipment = {
       id: Date.now(), recordType: 'shipment' as const, name: shipmentName,
       groups: groupedRolls.map(g => ({ letter: g.letter, rolls: g.rolls, avgL: g.avgL, avgW: g.avgW })),

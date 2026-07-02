@@ -1,0 +1,99 @@
+/* ── Dialog overlay ──────────────────────────────────────────────────────────── */
+.dlg-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: dlg-fade-in 0.12s ease;
+}
+
+@keyframes dlg-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Dialog box ──────────────────────────────────────────────────────────────── */
+.dlg-box {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 360px;
+  overflow: hidden;
+  animation: dlg-slide-in 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dlg-slide-in {
+  from { transform: scale(0.92) translateY(8px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);      opacity: 1; }
+}
+
+/* ── Title ───────────────────────────────────────────────────────────────────── */
+.dlg-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main, #1e293b);
+  padding: 20px 24px 0;
+}
+
+/* ── Message ─────────────────────────────────────────────────────────────────── */
+.dlg-message {
+  font-size: 15px;
+  color: var(--text-main, #334155);
+  line-height: 1.55;
+  padding: 16px 24px 20px;
+}
+
+.dlg-title + .dlg-message {
+  padding-top: 10px;
+  color: var(--text-light, #64748b);
+  font-size: 14px;
+}
+
+/* ── Action buttons ──────────────────────────────────────────────────────────── */
+.dlg-actions {
+  display: flex;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.dlg-btn {
+  flex: 1;
+  padding: 14px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s;
+  min-height: 48px;
+}
+
+.dlg-btn-cancel {
+  color: var(--text-light, #64748b);
+  border-right: 1px solid var(--border-color, #e2e8f0);
+}
+.dlg-btn-cancel:hover { background: #f8fafc; }
+
+.dlg-btn-ok {
+  color: var(--primary, #1976d2);
+}
+.dlg-btn-ok:hover { background: var(--info-light, #e3f2fd); }
+
+/* ── Mobile ──────────────────────────────────────────────────────────────────── */
+@media screen and (max-width: 480px) {
+  .dlg-box {
+    max-width: 100%;
+    border-radius: 14px;
+  }
+  .dlg-title { font-size: 15px; padding: 18px 18px 0; }
+  .dlg-message { font-size: 14px; padding: 12px 18px 16px; }
+  .dlg-btn { padding: 13px 10px; font-size: 15px; }
+}

@@ -1,6 +1,7 @@
 ﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useResults } from '../../../store/ResultsContext';
 import { useSettings } from '../../../hooks/useSettings';
+import { useDialog } from '../../../components/ui/DialogProvider';
 import { exportToCSV } from '../../../utils/exportUtils';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
@@ -515,6 +516,7 @@ export function ResultsPage() {
   }, [state.results, searchTerm, sortBy, filterType, filterSeverity, filterDateRange, activeSection]);
 
   const { settings } = useSettings();
+  const { showAlert } = useDialog();
 
   const handleExport = () => {
     if (settings.exportFormat === 'csv') {
@@ -537,8 +539,8 @@ export function ResultsPage() {
       try {
         const imp = JSON.parse(ev.target?.result as string);
         if (Array.isArray(imp)) importResults(imp.map((r: any) => ({ ...r, recordType: r.recordType || 'single' })));
-        else alert('Invalid format.');
-      } catch { alert('Error parsing JSON.'); }
+        else { showAlert('Invalid format. Expected a JSON array.'); }
+      } catch { showAlert('Error parsing JSON file.'); }
       e.target.value = '';
     };
     reader.readAsText(file);
