@@ -2761,3 +2761,105 @@ body {
   .res-batch-bar { bottom: 80px; padding: 10px 14px; gap: 8px; }
   .res-batch-btn { font-size: 12px; padding: 6px 10px; }
 }
+
+/* ── Inline detail panel (replaces FullReportModal) ─────────────────────────── */
+.res-inline-detail {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 4px;
+  animation: res-slide-in 0.18s ease;
+}
+@keyframes res-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.res-card-expanded {
+  grid-column: span 1;
+}
+.res-report-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: var(--text-light);
+}
+.res-report-meta b { color: var(--text-main); }
+.res-detail-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+.res-detail-table {
+  width: 100%;
+  font-size: 11px;
+  border-collapse: collapse;
+}
+.res-detail-table th,
+.res-detail-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.res-detail-table thead th {
+  background: var(--secondary);
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.res-detail-table tbody tr:last-child td { border-bottom: none; }
+.res-detail-table tbody tr:hover { background: var(--secondary); }
+.res-ship-group {
+  margin-bottom: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+.res-ship-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--secondary);
+  font-size: 12px;
+}
+.res-ship-rolls {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-left: auto;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.res-single-detail {
+  background: var(--secondary);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.res-print-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background 0.15s;
+}
+.res-print-inline-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.res-action-btn-active {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border-color: var(--primary) !important;
+}

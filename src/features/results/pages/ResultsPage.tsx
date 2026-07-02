@@ -50,129 +50,136 @@ function VariationPill({ rangeL, rangeW, groups }: { rangeL?: number; rangeW?: n
   );
 }
 
-// ── Full Report Modal ─────────────────────────────────────────────────────────
-function FullReportModal({
-  result, open, onClose,
-  isRollGroup, isShipment, isSampleTest, isFabricResult
-}: {
-  result: SavedResult | null; open: boolean; onClose: () => void;
-  isRollGroup: (r: SavedResult) => r is RollGroup;
-  isShipment: (r: SavedResult) => r is Shipment;
-  isSampleTest: (r: SavedResult) => r is SampleTest;
-  isFabricResult: (r: SavedResult) => r is FabricResult;
-}) {
-  if (!result || !open) return null;
+// ── Inline Detail Panel ───────────────────────────────────────────────────────
+function InlineDetail({ result }: { result: SavedResult }) {
+  const { recordType } = result;
+
   const handlePrint = () => {
-    if (isRollGroup(result) || isShipment(result)) printFactoryCutSheet([result.id]);
+    if (recordType === 'group' || recordType === 'shipment') printFactoryCutSheet([result.id]);
     else printPatternMaker([result.id]);
   };
+
   return (
-    <Modal isOpen={open} onClose={onClose} title={`Full Report — ${(result as any).name}`}>
-      <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-        {isRollGroup(result) && (
+    <div className="res-inline-detail">
+      {recordType === 'group' && (() => {
+        const r = result as RollGroup;
+        return (
           <>
             <div className="res-report-meta">
-              <TestTypeBadge type="group" />
-              <span>{result.rolls.length} rolls | Avg L: <b style={{ color: getShrinkColor(result.avgL) }}>{fmt(result.avgL)}</b> | Avg W: <b style={{ color: getShrinkColor(result.avgW) }}>{fmt(result.avgW)}</b></span>
-              <span style={{ fontSize: 12, color: 'var(--text-light)' }}>{result.date}</span>
+              <span>{r.rolls.length} rolls</span>
+              <span>Avg L: <b style={{ color: getShrinkColor(r.avgL) }}>{fmt(r.avgL)}</b></span>
+              <span>Avg W: <b style={{ color: getShrinkColor(r.avgW) }}>{fmt(r.avgW)}</b></span>
             </div>
-            <table className="advanced-test-table" style={{ marginTop: 12 }}>
-              <thead><tr><th>Roll ID</th><th>BL</th><th>BW</th><th>AL</th><th>AW</th><th>Shrink L%</th><th>Shrink W%</th></tr></thead>
-              <tbody>
-                {result.rolls.map((r, i) => (
-                  <tr key={i}>
-                    <td><b>{r.id}</b></td>
-                    <td>{r.bL?.toFixed(1) ?? '-'}</td><td>{r.bW?.toFixed(1) ?? '-'}</td>
-                    <td>{r.aL?.toFixed(1) ?? '-'}</td><td>{r.aW?.toFixed(1) ?? '-'}</td>
-                    <td style={{ color: getShrinkColor(r.sL as number) }}>{r.sL != null ? r.sL.toFixed(1) + '%' : '-'}</td>
-                    <td style={{ color: getShrinkColor(r.sW as number) }}>{r.sW != null ? r.sW.toFixed(1) + '%' : '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="res-detail-table-wrap">
+              <table className="advanced-test-table res-detail-table">
+                <thead><tr><th>Roll ID</th><th>BL</th><th>BW</th><th>AL</th><th>AW</th><th>Shrink L%</th><th>Shrink W%</th></tr></thead>
+                <tbody>
+                  {r.rolls.map((ro, i) => (
+                    <tr key={i}>
+                      <td><b>{ro.id}</b></td>
+                      <td>{ro.bL?.toFixed(1) ?? '-'}</td><td>{ro.bW?.toFixed(1) ?? '-'}</td>
+                      <td>{ro.aL?.toFixed(1) ?? '-'}</td><td>{ro.aW?.toFixed(1) ?? '-'}</td>
+                      <td style={{ color: getShrinkColor(ro.sL as number) }}>{ro.sL != null ? ro.sL.toFixed(1) + '%' : '-'}</td>
+                      <td style={{ color: getShrinkColor(ro.sW as number) }}>{ro.sW != null ? ro.sW.toFixed(1) + '%' : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
-        )}
-        {isShipment(result) && (
+        );
+      })()}
+
+      {recordType === 'shipment' && (() => {
+        const r = result as Shipment;
+        return (
           <>
             <div className="res-report-meta">
-              <TestTypeBadge type="shipment" />
-              <span>{result.groups.length} groups</span>
-              <span style={{ fontSize: 12, color: 'var(--text-light)' }}>{result.date}</span>
+              <span>{r.groups.length} groups</span>
             </div>
-            {result.groups.map((g, gi) => (
-              <div key={gi} style={{ marginTop: 16, border: '1px solid var(--border-color)', borderRadius: 8, padding: 12 }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>
-                  Group {g.letter} — Avg L: <span style={{ color: getShrinkColor(g.avgL) }}>{fmt(g.avgL)}</span> | Avg W: <span style={{ color: getShrinkColor(g.avgW) }}>{fmt(g.avgW)}</span>
-                  <span style={{ marginLeft: 10, fontSize: 12, color: 'var(--text-light)' }}>Rolls: {g.rolls.map(r => r.id).join(', ')}</span>
+            {r.groups.map((g, gi) => (
+              <div key={gi} className="res-ship-group">
+                <div className="res-ship-group-header">
+                  <b>Group {g.letter}</b>
+                  <span>Avg L: <span style={{ color: getShrinkColor(g.avgL) }}>{fmt(g.avgL)}</span></span>
+                  <span>Avg W: <span style={{ color: getShrinkColor(g.avgW) }}>{fmt(g.avgW)}</span></span>
+                  <span className="res-ship-rolls">Rolls: {g.rolls.map(ro => ro.id).join(', ')}</span>
                 </div>
-                <table className="advanced-test-table" style={{ fontSize: 11 }}>
-                  <thead><tr><th>Roll</th><th>BL</th><th>BW</th><th>AL</th><th>AW</th><th>Shrink L%</th><th>Shrink W%</th></tr></thead>
-                  <tbody>
-                    {g.rolls.map((r, ri) => (
-                      <tr key={ri}>
-                        <td><b>{r.id}</b></td>
-                        <td>{r.bL?.toFixed(1) ?? '-'}</td><td>{r.bW?.toFixed(1) ?? '-'}</td>
-                        <td>{r.aL?.toFixed(1) ?? '-'}</td><td>{r.aW?.toFixed(1) ?? '-'}</td>
-                        <td>{r.sL != null ? r.sL.toFixed(1) + '%' : '-'}</td>
-                        <td>{r.sW != null ? r.sW.toFixed(1) + '%' : '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="res-detail-table-wrap">
+                  <table className="advanced-test-table res-detail-table">
+                    <thead><tr><th>Roll</th><th>BL</th><th>BW</th><th>AL</th><th>AW</th><th>L%</th><th>W%</th></tr></thead>
+                    <tbody>
+                      {g.rolls.map((ro, ri) => (
+                        <tr key={ri}>
+                          <td><b>{ro.id}</b></td>
+                          <td>{ro.bL?.toFixed(1) ?? '-'}</td><td>{ro.bW?.toFixed(1) ?? '-'}</td>
+                          <td>{ro.aL?.toFixed(1) ?? '-'}</td><td>{ro.aW?.toFixed(1) ?? '-'}</td>
+                          <td>{ro.sL != null ? ro.sL.toFixed(1) + '%' : '-'}</td>
+                          <td>{ro.sW != null ? ro.sW.toFixed(1) + '%' : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ))}
           </>
-        )}
-        {isSampleTest(result) && (
+        );
+      })()}
+
+      {recordType === 'sample' && (() => {
+        const r = result as SampleTest;
+        return (
           <>
             <div className="res-report-meta">
-              <TestTypeBadge type="sample" />
-              <span>{result.samples?.length || 0} samples | Avg L: <b style={{ color: getShrinkColor(result.avgL) }}>{fmt(result.avgL)}</b> | Avg W: <b style={{ color: getShrinkColor(result.avgW) }}>{fmt(result.avgW)}</b></span>
+              <span>{r.samples?.length || 0} samples</span>
+              <span>Avg L: <b style={{ color: getShrinkColor(r.avgL) }}>{fmt(r.avgL)}</b></span>
+              <span>Avg W: <b style={{ color: getShrinkColor(r.avgW) }}>{fmt(r.avgW)}</b></span>
             </div>
-            {(result.cutL || result.cutW) && (
-              <div className="res-cut-dims" style={{ marginTop: 8 }}>
-                <i className="fas fa-cut"></i> Pre-wash Cut: <b>{result.cutL?.toFixed(2) ?? '-'}"</b> L × <b>{result.cutW?.toFixed(2) ?? '-'}"</b> W
-                <span style={{ opacity: 0.6, fontSize: 12, marginLeft: 8 }}>(Desired: {result.desiredL?.toFixed(2) ?? '-'}" × {result.desiredW?.toFixed(2) ?? '-'}")</span>
+            {(r.cutL || r.cutW) && (
+              <div className="res-cut-dims" style={{ marginBottom: 8 }}>
+                <i className="fas fa-cut"></i> Pre-wash Cut: <b>{r.cutL?.toFixed(2) ?? '-'}"</b> L × <b>{r.cutW?.toFixed(2) ?? '-'}"</b> W
+                {(r.desiredL || r.desiredW) && (
+                  <span style={{ opacity: 0.6, fontSize: 11, marginLeft: 8 }}>(Desired: {r.desiredL?.toFixed(2) ?? '-'}" × {r.desiredW?.toFixed(2) ?? '-'}")</span>
+                )}
               </div>
             )}
-            <table className="advanced-test-table" style={{ marginTop: 12 }}>
-              <thead><tr><th>Sample</th><th>BL</th><th>BW</th><th>AL</th><th>AW</th><th>Shrink L</th><th>Shrink W</th></tr></thead>
-              <tbody>
-                {(result.samples || []).map((s, i) => (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td>{s.bL?.toFixed(1)}</td><td>{s.bW?.toFixed(1)}</td>
-                    <td>{s.aL?.toFixed(1)}</td><td>{s.aW?.toFixed(1)}</td>
-                    <td>{s.sL}</td><td>{s.sW}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
-        {isFabricResult(result) && (
-          <>
-            <div className="res-report-meta">
-              <TestTypeBadge type="single" />
-              <span><b>{result.type}</b> | {result.wash}{result.temp ? ` | ${result.temp}` : ''}{result.duration ? ` | ${result.duration}` : ''}</span>
-            </div>
-            <div className="res-shrink-row" style={{ marginTop: 12 }}>
-              <div className="res-shrink-item"><span className="res-shrink-label">Length</span><span className="res-shrink-val" style={{ color: getShrinkColor(result.lShrink) }}>{fmt(result.lShrink)}</span></div>
-              <div className="res-shrink-divider" />
-              <div className="res-shrink-item"><span className="res-shrink-label">Width</span><span className="res-shrink-val" style={{ color: getShrinkColor(result.wShrink) }}>{fmt(result.wShrink)}</span></div>
-            </div>
-            <div style={{ marginTop: 12, fontSize: 13 }}>
-              <b>Before:</b> {result.bwL ?? '-'} × {result.bwW ?? '-'} {result.unit} &nbsp;&nbsp;
-              <b>After:</b> {result.awL ?? '-'} × {result.awW ?? '-'} {result.unit}
+            <div className="res-detail-table-wrap">
+              <table className="advanced-test-table res-detail-table">
+                <thead><tr><th>#</th><th>BL</th><th>BW</th><th>AL</th><th>AW</th><th>Shrink L</th><th>Shrink W</th></tr></thead>
+                <tbody>
+                  {(r.samples || []).map((s, i) => (
+                    <tr key={i}>
+                      <td>{i + 1}</td>
+                      <td>{s.bL?.toFixed(1)}</td><td>{s.bW?.toFixed(1)}</td>
+                      <td>{s.aL?.toFixed(1)}</td><td>{s.aW?.toFixed(1)}</td>
+                      <td>{s.sL}</td><td>{s.sW}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </>
-        )}
-      </div>
-      <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-        <Button variant="primary" icon={<i className="fas fa-print"></i>} onClick={handlePrint}>Print Report</Button>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </div>
-    </Modal>
+        );
+      })()}
+
+      {recordType === 'single' && (() => {
+        const r = result as FabricResult;
+        return (
+          <div className="res-single-detail">
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13 }}>
+              <div><span style={{ color: 'var(--text-light)', fontSize: 11, display: 'block', marginBottom: 2 }}>BEFORE WASH</span><b>{r.bwL ?? '-'} × {r.bwW ?? '-'} {r.unit}</b></div>
+              <div><span style={{ color: 'var(--text-light)', fontSize: 11, display: 'block', marginBottom: 2 }}>AFTER WASH</span><b>{r.awL ?? '-'} × {r.awW ?? '-'} {r.unit}</b></div>
+              {r.type && <div><span style={{ color: 'var(--text-light)', fontSize: 11, display: 'block', marginBottom: 2 }}>FABRIC TYPE</span><b>{r.type}</b></div>}
+            </div>
+          </div>
+        );
+      })()}
+
+      <button className="res-print-inline-btn" onClick={handlePrint}>
+        <i className="fas fa-print"></i> Print Report
+      </button>
+    </div>
   );
 }
 
@@ -257,16 +264,17 @@ function TagManagerModal({ open, onClose, tags, addTag, deleteTag }: {
 
 // ── Result Card ───────────────────────────────────────────────────────────────
 function ResultCard({
-  result, selected, onToggleSelect, onDelete, onViewReport, onEdit, onDuplicate,
+  result, selected, onToggleSelect, onDelete, onEdit, onDuplicate,
   onLoadAvg, onAssignTag, onRemoveTag, onAssignFolder, allTags, allFolders
 }: {
   result: SavedResult; selected: boolean;
   onToggleSelect: () => void; onDelete: () => void;
-  onViewReport: () => void; onEdit?: () => void; onDuplicate?: () => void; onLoadAvg?: () => void;
+  onEdit?: () => void; onDuplicate?: () => void; onLoadAvg?: () => void;
   onAssignTag: (tagId: string) => void; onRemoveTag: (tagId: string) => void;
   onAssignFolder: (folderId: string | undefined) => void;
   allTags: Tag[]; allFolders: Folder[];
 }) {
+  const [expanded, setExpanded] = useState(false);
   const [showTagMenu, setShowTagMenu] = useState(false);
   const [showFolderMenu, setShowFolderMenu] = useState(false);
   const tagMenuRef = useRef<HTMLDivElement>(null);
@@ -286,7 +294,6 @@ function ResultCard({
   const isShip = recordType === 'shipment';
   const isSingle = recordType === 'single';
   const isSample = recordType === 'sample';
-  const needsReport = isGroup || isShip || isSample;
 
   let name = ''; let dateStr = ''; let washLine = '';
   let shrinkL = 0, shrinkW = 0, rangeL = 0, rangeW = 0, groupCount = 0;
@@ -321,7 +328,7 @@ function ResultCard({
   const appliedTags = allTags.filter(t => (result.tags || []).includes(t.id));
 
   return (
-    <div className={`res-card${selected ? ' res-card-selected' : ''}`}>
+    <div className={`res-card${selected ? ' res-card-selected' : ''}${expanded ? ' res-card-expanded' : ''}`}>
       <div className="res-card-check" onClick={onToggleSelect}>
         <i className={`fas ${selected ? 'fa-check-square' : 'fa-square'}`} style={{ color: selected ? 'var(--primary)' : '#ccc', fontSize: 16 }}></i>
       </div>
@@ -407,11 +414,16 @@ function ResultCard({
             </div>
           )}
         </div>
-        {needsReport && <button className="res-action-btn" onClick={onViewReport} title="View full report"><i className="fas fa-expand-alt"></i></button>}
+        <button className={`res-action-btn${expanded ? ' res-action-btn-active' : ''}`} onClick={() => setExpanded(v => !v)} title={expanded ? 'Collapse details' : 'View full details'}>
+          <i className={`fas ${expanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+          <span style={{ fontSize: 11 }}>{expanded ? 'Less' : 'Details'}</span>
+        </button>
         {onEdit && <button className="res-action-btn" onClick={onEdit} title="Edit"><i className="fas fa-edit"></i></button>}
         {onLoadAvg && <button className="res-action-btn" onClick={onLoadAvg} title="Load avg"><i className="fas fa-calculator"></i></button>}
         {onDuplicate && <button className="res-action-btn" onClick={onDuplicate} title="Duplicate"><i className="fas fa-copy"></i></button>}
       </div>
+
+      {expanded && <InlineDetail result={result} />}
     </div>
   );
 }
@@ -432,7 +444,6 @@ export function ResultsPage() {
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [filterDateRange, setFilterDateRange] = useState<string>('all');
   const [activeSection, setActiveSection] = useState<string>('all');
-  const [reportResult, setReportResult] = useState<SavedResult | null>(null);
   const [showFolderMgr, setShowFolderMgr] = useState(false);
   const [showTagMgr, setShowTagMgr] = useState(false);
 
@@ -610,7 +621,6 @@ export function ResultsPage() {
                   selected={state.selectedIds.has(result.id)}
                   onToggleSelect={() => toggleSelect(result.id)}
                   onDelete={() => deleteResult(result.id)}
-                  onViewReport={() => setReportResult(result)}
                   onEdit={isFabricResult(result) ? () => window.dispatchEvent(new CustomEvent('edit-result', { detail: result })) : undefined}
                   onDuplicate={
                     isFabricResult(result)
@@ -656,8 +666,6 @@ export function ResultsPage() {
         </div>
       )}
 
-      <FullReportModal result={reportResult} open={!!reportResult} onClose={() => setReportResult(null)}
-        isRollGroup={isRollGroup} isShipment={isShipment} isSampleTest={isSampleTest} isFabricResult={isFabricResult} />
       <FolderManagerModal open={showFolderMgr} onClose={() => setShowFolderMgr(false)}
         folders={state.folders} addFolder={addFolder} deleteFolder={deleteFolder} />
       <TagManagerModal open={showTagMgr} onClose={() => setShowTagMgr(false)}
