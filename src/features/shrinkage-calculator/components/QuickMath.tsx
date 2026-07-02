@@ -47,23 +47,21 @@ export function QuickMath() {
     <div className="quick-math-grid">
       <div className="card">
         <div className="card-title"><i className="fas fa-balance-scale"></i> X is what percentage of Y?</div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginTop: '30px' }}>
+        <div className="qm-input-row">
           <input
             type="number"
             placeholder="X"
             value={qm2X}
             onChange={(e) => setQm2X(e.target.value)}
-            className="pm-input"
-            style={{ width: '120px', padding: '15px', fontSize: '18px' }}
+            className="pm-input qm-input-field"
           />
-          <span style={{ fontWeight: '600', color: 'var(--text-light)', fontSize: '14px' }}>is what % of</span>
+          <span className="qm-label">is what % of</span>
           <input
             type="number"
             placeholder="Y"
             value={qm2Y}
             onChange={(e) => setQm2Y(e.target.value)}
-            className="pm-input"
-            style={{ width: '120px', padding: '15px', fontSize: '18px', borderColor: 'var(--primary)' }}
+            className="pm-input qm-input-field qm-input-accent"
           />
         </div>
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
@@ -89,24 +87,22 @@ export function QuickMath() {
 
       <div className="card">
         <div className="card-title"><i className="fas fa-percentage"></i> What is X percentage of Y?</div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginTop: '30px' }}>
-          <span style={{ fontWeight: '600', color: 'var(--text-light)', fontSize: '14px' }}>What is</span>
+        <div className="qm-input-row">
+          <span className="qm-label">What is</span>
           <input
             type="number"
             placeholder="X (%)"
             value={qm3X}
             onChange={(e) => setQm3X(e.target.value)}
-            className="pm-input"
-            style={{ width: '120px', padding: '15px', fontSize: '18px' }}
+            className="pm-input qm-input-field"
           />
-          <span style={{ fontWeight: '600', color: 'var(--text-light)', fontSize: '14px' }}>% of</span>
+          <span className="qm-label">% of</span>
           <input
             type="number"
             placeholder="Y"
             value={qm3Y}
             onChange={(e) => setQm3Y(e.target.value)}
-            className="pm-input"
-            style={{ width: '120px', padding: '15px', fontSize: '18px', borderColor: 'var(--primary)' }}
+            className="pm-input qm-input-field qm-input-accent"
           />
         </div>
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
