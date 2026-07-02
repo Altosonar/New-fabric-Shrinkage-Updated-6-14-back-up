@@ -2882,32 +2882,41 @@ body {
 
 .stg-layout {
   display: flex;
+  flex-direction: column;
   gap: 0;
   align-items: flex-start;
   margin-top: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
-/* ── Tab nav (vertical) ──────────────────────────────────────────────────────── */
+/* ── Tab nav (horizontal pills default, vertical on desktop) ─────────────────── */
 .stg-tab-nav {
-  width: 200px;
+  width: 100%;
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-right: 16px;
-  border-right: 1px solid var(--border-color);
-  margin-right: 24px;
-  position: sticky;
-  top: 16px;
+  flex-direction: row;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+  position: static;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.stg-tab-nav::-webkit-scrollbar { display: none; }
 
 .stg-tab-btn {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   border-radius: 10px;
   border: none;
+  flex-shrink: 0;
+  white-space: nowrap;
   background: transparent;
   cursor: pointer;
   font-size: 13px;
@@ -2922,7 +2931,7 @@ body {
 .stg-tab-btn-active { background: var(--primary) !important; color: #fff !important; }
 
 /* ── Tab content ─────────────────────────────────────────────────────────────── */
-.stg-tab-content { flex: 1; min-width: 0; }
+.stg-tab-content { flex: 1; min-width: 0; width: 100%; box-sizing: border-box; }
 
 /* ── Section ─────────────────────────────────────────────────────────────────── */
 .stg-section {
@@ -3259,22 +3268,6 @@ body {
 
 /* ── Mobile responsive ───────────────────────────────────────────────────────── */
 @media screen and (max-width: 768px) {
-  .stg-layout { flex-direction: column; }
-  .stg-tab-nav {
-    width: 100%;
-    flex-direction: row;
-    overflow-x: auto;
-    padding-right: 0;
-    padding-bottom: 12px;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-    margin-right: 0;
-    margin-bottom: 16px;
-    position: static;
-    gap: 6px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .stg-tab-btn { white-space: nowrap; padding: 8px 14px; flex-shrink: 0; flex-direction: row; }
   .stg-row { flex-direction: column; align-items: flex-start; gap: 10px; }
   .stg-row-control { width: 100%; }
   .stg-select { min-width: unset; width: 100%; }
@@ -3283,6 +3276,33 @@ body {
   .stg-danger-input { max-width: 100%; }
   .stg-danger-input-row { flex-direction: column; align-items: stretch; }
   .stg-danger-input-row .stg-btn { justify-content: center; }
+}
+
+/* ── Desktop: switch to vertical sidebar layout ─────────────────────────────── */
+@media screen and (min-width: 769px) {
+  .stg-layout {
+    flex-direction: row;
+    overflow-x: visible;
+  }
+  .stg-tab-nav {
+    width: 200px;
+    flex-direction: column;
+    overflow-x: visible;
+    padding-bottom: 0;
+    padding-right: 16px;
+    border-bottom: none;
+    border-right: 1px solid var(--border-color);
+    margin-bottom: 0;
+    margin-right: 24px;
+    position: sticky;
+    top: 16px;
+    gap: 4px;
+  }
+  .stg-tab-btn {
+    padding: 10px 14px;
+    white-space: normal;
+    width: 100%;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -3344,20 +3364,11 @@ body {
   .res-header-secondary { display: none !important; }
   .res-header-overflow-btn { display: inline-flex !important; }
 
-  /* Settings layout overflow fix */
-  .stg-layout {
-    overflow-x: hidden;
-    width: 100%;
-  }
-  .stg-tab-content {
-    overflow-x: hidden;
-    width: 100%;
-    min-width: 0;
-  }
+  /* Settings layout — already mobile-first in base CSS, just ensure containment */
   .stg-section {
-    overflow: hidden;
     width: 100%;
     box-sizing: border-box;
+    overflow: hidden;
   }
   .stg-toggle-wrap {
     flex-wrap: wrap;
