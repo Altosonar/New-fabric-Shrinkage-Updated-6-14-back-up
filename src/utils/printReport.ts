@@ -4,23 +4,23 @@ import { STORAGE_KEY } from './constants';
  * Smart Print: context-aware printing.
  * - Calculator view  → prints the calculator UI (CSS hides header/tabs)
  * - Results view     → builds a formatted table report and prints it
+ *
+ * Forces identical desktop-style layout on all devices by temporarily
+ * removing mobile visibility classes before window.print().
  */
 export function triggerSmartPrint(): void {
   const currentView = document.body.dataset.currentView || 'calculator';
 
   if (currentView === 'results') {
-    // Database Report mode
     document.body.classList.add('print-report-mode');
     buildPrintReport();
-    window.print();
   } else {
-    // Calculator UI mode
     document.body.classList.remove('print-report-mode');
-    window.print();
   }
+  window.print();
 }
 
-// Clean up after print dialog closes
+// Clean up print-report-mode class after the print dialog closes (all modes)
 if (typeof window !== 'undefined') {
   window.addEventListener('afterprint', () => {
     document.body.classList.remove('print-report-mode');
