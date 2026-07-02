@@ -67,26 +67,17 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   }, []); // Run once on mount
 
   // ── Row mutations ────────────────────────────────────────────────────────────
+  // Part 1 fix: handleRowChange ONLY updates the exact cell that changed.
+  // Cascade removed — other rows are untouched until Fill Down is clicked.
   const handleRowChange = (rowIndex: number, field: keyof RollRow, value: string) => {
-    const cascadeFields: (keyof RollRow)[] = ['bL', 'bW'];
-    setRows(prev => {
-      const prevTop = prev[0]?.[field];
-      return prev.map((row, i) => {
-        if (i === rowIndex) return { ...row, [field]: value };
-        // Cascade the top row's Before values down to rows that still hold the old
-        // top value (auto-filled / default), preserving any manually-edited rows.
-        if (rowIndex === 0 && cascadeFields.includes(field) && (row[field] === prevTop || row[field] === '')) {
-          return { ...row, [field]: value };
-        }
-        return row;
-      });
-    });
+    setRows(prev => prev.map((row, i) => i === rowIndex ? { ...row, [field]: value } : row));
     // Show fill-down pill when row 0 Before field is non-empty
     if (rowIndex === 0 && (field === 'bL' || field === 'bW')) {
       setFillDownVisible(prev => ({ ...prev, [field]: value.trim() !== '' }));
     }
   };
 
+  // Part 2: explicitly fill top value down to every row below
   const handleFillDown = (field: 'bL' | 'bW') => {
     const topValue = rows[0]?.[field];
     if (!topValue) return;
@@ -94,28 +85,38 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
     setFillDownVisible(prev => ({ ...prev, [field]: false }));
   };
 
-  // Auto-populate bL/bW from first row on blur
-  const handleFirstRowBlur = (field: keyof RollRow, value: string) => {
-    const measurementFields: (keyof RollRow)[] = ['bL', 'bW'];
-    if (!measurementFields.includes(field) || value === '') return;
-    setRows(prev => {
-      const newRows = [...prev];
-      for (let i = 1; i < newRows.length; i++) {
-        if (newRows[i][field] === '') {
-          newRows[i] = { ...newRows[i], [field]: value };
-        }
-      }
-      return newRows;
-    });
+  // Part 3: Arrow-key grid navigation.
+  // Column order: 0=id, 1=bL, 2=bW, 3=aL, 4=aW
+  // Cell IDs use format: roll-{rowIdx}-{colIdx}
+  const ROLL_COL_COUNT = 5;
+  const handleCellKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    rowIdx: number,
+    colIdx: number
+  ) => {
+    let nextRow = rowIdx;
+    let nextCol = colIdx;
+    switch (e.key) {
+      case 'ArrowDown':  e.preventDefault(); nextRow = Math.min(rowIdx + 1, rows.length - 1); break;
+      case 'ArrowUp':    e.preventDefault(); nextRow = Math.max(rowIdx - 1, 0); break;
+      case 'ArrowRight': e.preventDefault(); nextCol = Math.min(colIdx + 1, ROLL_COL_COUNT - 1); break;
+      case 'ArrowLeft':  e.preventDefault(); nextCol = Math.max(colIdx - 1, 0); break;
+      case 'Tab':        return; // let Tab navigate naturally
+      default:           return;
+    }
+    if (nextRow !== rowIdx || nextCol !== colIdx) {
+      const target = document.getElementById(`roll-${nextRow}-${nextCol}`) as HTMLInputElement | null;
+      target?.focus();
+      target?.select();
+    }
   };
 
   const handleAddRow = () => {
     const nextOrder = nextOrderRef.current++;
     setRows(prev => {
-      const top = prev[0];
       const newRow: RollRow = {
         order: nextOrder, id: '',
-        bL: top?.bL ?? '', bW: top?.bW ?? '', aL: '', aW: '',
+        bL: '', bW: '', aL: '', aW: '',
         sL: '-', sW: '-', group: ''
       };
       const newRows = [...prev, newRow];
@@ -610,48 +611,71 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
                   style={rowBg ? { background: rowBg } : undefined}
                 >
                   <td>
+                    {/* col 0 = Roll ID (text, still arrow-navigable) */}
                     <input
+                      id={`roll-${idx}-0`}
                       type="text"
                       placeholder={`R${idx + 1}`}
                       style={{ width: '60px' }}
                       value={row.id}
                       onChange={(e) => handleRowChange(idx, 'id', e.target.value)}
+                      onKeyDown={(e) => handleCellKeyDown(e, idx, 0)}
                     />
                   </td>
+                  {/* col 1 = bL */}
                   <td className={idx === 0 ? 'fill-down-cell' : ''}>
                     <input
+                      id={`roll-${idx}-1`}
                       type="number" step="any" value={row.bL}
                       onChange={(e) => handleRowChange(idx, 'bL', e.target.value)}
-                      onBlur={idx === 0 ? (e) => handleFirstRowBlur('bL', e.target.value) : undefined}
+                      onKeyDown={(e) => handleCellKeyDown(e, idx, 1)}
                     />
                     {idx === 0 && fillDownVisible.bL && (
-                      <button className="fill-down-pill" onMouseDown={(e) => { e.preventDefault(); handleFillDown('bL'); }} title="Copy to all rows">
+                      <button
+                        className="fill-down-pill"
+                        onMouseDown={(e) => { e.preventDefault(); handleFillDown('bL'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bL'); } }}
+                        title="Copy to all rows (Enter)"
+                      >
                         <i className="fas fa-arrow-down"></i> Fill Down
                       </button>
                     )}
                   </td>
+                  {/* col 2 = bW */}
                   <td className={idx === 0 ? 'fill-down-cell' : ''}>
                     <input
+                      id={`roll-${idx}-2`}
                       type="number" step="any" value={row.bW}
                       onChange={(e) => handleRowChange(idx, 'bW', e.target.value)}
-                      onBlur={idx === 0 ? (e) => handleFirstRowBlur('bW', e.target.value) : undefined}
+                      onKeyDown={(e) => handleCellKeyDown(e, idx, 2)}
                     />
                     {idx === 0 && fillDownVisible.bW && (
-                      <button className="fill-down-pill" onMouseDown={(e) => { e.preventDefault(); handleFillDown('bW'); }} title="Copy to all rows">
+                      <button
+                        className="fill-down-pill"
+                        onMouseDown={(e) => { e.preventDefault(); handleFillDown('bW'); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bW'); } }}
+                        title="Copy to all rows (Enter)"
+                      >
                         <i className="fas fa-arrow-down"></i> Fill Down
                       </button>
                     )}
                   </td>
+                  {/* col 3 = aL */}
                   <td>
                     <input
+                      id={`roll-${idx}-3`}
                       type="number" step="any" value={row.aL}
                       onChange={(e) => handleRowChange(idx, 'aL', e.target.value)}
+                      onKeyDown={(e) => handleCellKeyDown(e, idx, 3)}
                     />
                   </td>
+                  {/* col 4 = aW */}
                   <td>
                     <input
+                      id={`roll-${idx}-4`}
                       type="number" step="any" value={row.aW}
                       onChange={(e) => handleRowChange(idx, 'aW', e.target.value)}
+                      onKeyDown={(e) => handleCellKeyDown(e, idx, 4)}
                     />
                   </td>
                   {/* Shrink L% — color coded */}

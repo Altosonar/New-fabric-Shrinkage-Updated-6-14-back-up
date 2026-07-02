@@ -120,31 +120,50 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   ]);
 
   // ── Row mutations ────────────────────────────────────────────────────────────
+  // Part 1 fix: handleRowChange ONLY updates the changed cell.
+  // Cascade is intentionally removed — rows stay independent until
+  // the user explicitly clicks/presses Enter on the Fill Down pill.
   const handleRowChange = (rowIndex: number, field: keyof RowData, value: string) => {
-    const cascadeFields: (keyof RowData)[] = ['bL', 'bW'];
-    setRows(prev => {
-      const prevTop = prev[0]?.[field];
-      return prev.map((row, i) => {
-        if (i === rowIndex) return { ...row, [field]: value };
-        // Cascade the top row's Before values down to rows that still hold the old
-        // top value (auto-filled / default), preserving manually-edited samples.
-        if (rowIndex === 0 && cascadeFields.includes(field) && (row[field] === prevTop || row[field] === '')) {
-          return { ...row, [field]: value };
-        }
-        return row;
-      });
-    });
-    // Show fill-down pill on row 0 Before fields when value is non-empty
+    setRows(prev => prev.map((row, i) => i === rowIndex ? { ...row, [field]: value } : row));
+    // Show fill-down pill whenever row 0 Before field has a value
     if (rowIndex === 0 && (field === 'bL' || field === 'bW')) {
       setFillDownVisible(prev => ({ ...prev, [field]: value.trim() !== '' }));
     }
   };
 
+  // Part 2: fill-down applies top value to ALL rows below
   const handleFillDown = (field: 'bL' | 'bW') => {
     const topValue = rows[0]?.[field];
     if (!topValue) return;
     setRows(prev => prev.map((row, i) => i === 0 ? row : { ...row, [field]: topValue }));
     setFillDownVisible(prev => ({ ...prev, [field]: false }));
+  };
+
+  // Part 3: Arrow-key grid navigation.
+  // Column order: 0=bL, 1=bW, 2=aL, 3=aW
+  // Cell IDs use format: adv-{rowIdx}-{colIdx}
+  const ADV_COLS: (keyof RowData)[] = ['bL', 'bW', 'aL', 'aW'];
+  const handleCellKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    rowIdx: number,
+    colIdx: number
+  ) => {
+    let nextRow = rowIdx;
+    let nextCol = colIdx;
+    switch (e.key) {
+      case 'ArrowDown':  e.preventDefault(); nextRow = Math.min(rowIdx + 1, rows.length - 1); break;
+      case 'ArrowUp':    e.preventDefault(); nextRow = Math.max(rowIdx - 1, 0); break;
+      case 'ArrowRight': e.preventDefault(); nextCol = Math.min(colIdx + 1, ADV_COLS.length - 1); break;
+      case 'ArrowLeft':  e.preventDefault(); nextCol = Math.max(colIdx - 1, 0); break;
+      case 'Tab':        // Let Tab flow naturally; handled by the browser
+        return;
+      default:           return;
+    }
+    if (nextRow !== rowIdx || nextCol !== colIdx) {
+      const target = document.getElementById(`adv-${nextRow}-${nextCol}`) as HTMLInputElement | null;
+      target?.focus();
+      target?.select();
+    }
   };
 
   const handleAddRow = () => {
@@ -284,45 +303,67 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
             {rows.map((row, idx) => (
               <tr key={idx}>
                 <td><strong>#{idx + 1}</strong></td>
+                {/* col 0 = bL */}
                 <td className={idx === 0 ? 'fill-down-cell' : ''}>
                   <input
+                    id={`adv-${idx}-0`}
                     type="number"
                     value={row.bL}
                     onChange={(e) => handleRowChange(idx, 'bL', e.target.value)}
+                    onKeyDown={(e) => handleCellKeyDown(e, idx, 0)}
                     placeholder="0"
                   />
                   {idx === 0 && fillDownVisible.bL && (
-                    <button className="fill-down-pill" onMouseDown={(e) => { e.preventDefault(); handleFillDown('bL'); }} title="Copy this value to all rows below">
+                    <button
+                      className="fill-down-pill"
+                      onMouseDown={(e) => { e.preventDefault(); handleFillDown('bL'); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bL'); } }}
+                      title="Copy this value to all rows below (Enter)"
+                    >
                       <i className="fas fa-arrow-down"></i> Fill Down
                     </button>
                   )}
                 </td>
+                {/* col 1 = bW */}
                 <td className={idx === 0 ? 'fill-down-cell' : ''}>
                   <input
+                    id={`adv-${idx}-1`}
                     type="number"
                     value={row.bW}
                     onChange={(e) => handleRowChange(idx, 'bW', e.target.value)}
+                    onKeyDown={(e) => handleCellKeyDown(e, idx, 1)}
                     placeholder="0"
                   />
                   {idx === 0 && fillDownVisible.bW && (
-                    <button className="fill-down-pill" onMouseDown={(e) => { e.preventDefault(); handleFillDown('bW'); }} title="Copy this value to all rows below">
+                    <button
+                      className="fill-down-pill"
+                      onMouseDown={(e) => { e.preventDefault(); handleFillDown('bW'); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bW'); } }}
+                      title="Copy this value to all rows below (Enter)"
+                    >
                       <i className="fas fa-arrow-down"></i> Fill Down
                     </button>
                   )}
                 </td>
+                {/* col 2 = aL */}
                 <td>
                   <input
+                    id={`adv-${idx}-2`}
                     type="number"
                     value={row.aL}
                     onChange={(e) => handleRowChange(idx, 'aL', e.target.value)}
+                    onKeyDown={(e) => handleCellKeyDown(e, idx, 2)}
                     placeholder="0"
                   />
                 </td>
+                {/* col 3 = aW */}
                 <td>
                   <input
+                    id={`adv-${idx}-3`}
                     type="number"
                     value={row.aW}
                     onChange={(e) => handleRowChange(idx, 'aW', e.target.value)}
+                    onKeyDown={(e) => handleCellKeyDown(e, idx, 3)}
                     placeholder="0"
                   />
                 </td>
