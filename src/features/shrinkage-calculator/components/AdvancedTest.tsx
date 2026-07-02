@@ -40,6 +40,8 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [sampleName, setSampleName] = useState('');
   const [patternApplied, setPatternApplied] = useState(false);
+  // Two-part accordion: 'data' (table) expanded by default, 'insights' collapsed
+  const [advPart, setAdvPart] = useState<'data' | 'insights'>('data');
 
   // ── Auto-fill bL / bW from Row 1 into all other rows ────────────────────────
   useEffect(() => {
@@ -241,11 +243,13 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
       <h2 style={{ marginBottom: '10px', color: 'var(--primary)', fontSize: '20px' }}>
         Advanced Multi-Sample Average Test
       </h2>
-      <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '25px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '16px' }}>
         Enter samples to calculate true average shrinkage.{' '}
         <em>Fill Row #1 to auto-fill original dimensions for all other rows.</em>
       </p>
 
+      {/* ── PART 1: Data Collection — Table (expanded by default) ── */}
+      <div className={`adv-two-part${advPart === 'data' ? ' adv-part-active' : ''}`}>
       {/* ── Sample Table ─────────────────────────────────────────────────────── */}
       <div style={{ overflowX: 'auto' }}>
         <table className="advanced-test-table">
@@ -331,6 +335,25 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
       {/* ── Add Sample Button ─────────────────────────────────────────────────── */}
       <button className="adv-add-row-btn" onClick={handleAddRow}>
         <i className="fas fa-plus"></i> Add Sample
+      </button>
+
+      {/* ── Next: Apply to Pattern button ── */}
+      <button
+        className="adv-next-part-btn"
+        onClick={() => setAdvPart('insights')}
+      >
+        <i className="fas fa-arrow-right"></i> Next: Apply to Pattern
+      </button>
+      </div>{/* end adv-two-part data */}
+
+      {/* ── PART 2: Pattern Application / Insights (collapsed by default) ── */}
+      <div className={`adv-two-part${advPart === 'insights' ? ' adv-part-active' : ''}`}>
+      {/* Back to data */}
+      <button
+        className="adv-back-part-btn"
+        onClick={() => setAdvPart('data')}
+      >
+        <i className="fas fa-arrow-left"></i> Back to Data Table
       </button>
 
       {/* ── Average Shrinkage Card ────────────────────────────────────────────── */}
@@ -491,6 +514,7 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
           </button>
         </div>
       )}
+      </div>{/* end adv-two-part insights */}
 
       {/* ── Save Modal ────────────────────────────────────────────────────────── */}
       <Modal isOpen={saveModalOpen} onClose={() => setSaveModalOpen(false)} title="Save Sample Test">

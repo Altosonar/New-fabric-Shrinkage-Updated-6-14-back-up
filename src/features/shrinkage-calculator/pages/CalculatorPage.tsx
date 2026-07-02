@@ -20,12 +20,13 @@ export function CalculatorPage() {
   const [calcMode, setCalcMode] = useState<CalcMode>('shrinkage');
   const [unit, setUnit] = useState<Unit>('inches');
   const [editingId, setEditingIdLocal] = useState<number | null>(null);
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const [sidebarPortalTarget, setSidebarPortalTarget] = useState<HTMLElement | null>(null);
+  const [mobileNavPortalTarget, setMobileNavPortalTarget] = useState<HTMLElement | null>(null);
 
-  // Set portal target after mount
+  // Set portal targets after mount
   useEffect(() => {
-    const el = document.getElementById('header-nav-portal');
-    if (el) setPortalTarget(el);
+    setSidebarPortalTarget(document.getElementById('sidebar-nav-portal'));
+    setMobileNavPortalTarget(document.getElementById('mobile-nav-portal'));
   }, []);
 
   // Form state for shrinkage calculator
@@ -44,6 +45,10 @@ export function CalculatorPage() {
   const [widthShrink, setWidthShrink] = useState(0);
   const [lengthShrink, setLengthShrink] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [mobileStage, setMobileStage] = useState<'input' | 'results'>('input');
+  // Accordion: 'shrinkage' expanded by default, 'wash' collapsed
+  const [activeAccordion, setActiveAccordion] = useState<'shrinkage' | 'wash' | null>('shrinkage');
 
   // Save modal state
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -122,6 +127,7 @@ export function CalculatorPage() {
     }
     recalculate(bwW, awW, bwL, awL);
     setShowResults(true);
+    setMobileStage('results');
   }, [bwW, awW, bwL, awL, recalculate]);
 
   // Slider callbacks — update the washed value and recalculate instantly
@@ -213,6 +219,7 @@ export function CalculatorPage() {
     setEditingId(null);
     setUserHasTyped(false);
     setShowResults(false);
+    setMobileStage('input');
   };
 
   // Cancel edit
@@ -335,6 +342,24 @@ export function CalculatorPage() {
     };
   }, [handleWashChange, setEditingId]);
 
+  // Auto-fill wash parameters from the selected wash process standard values
+  const handleAutoFillWashParams = () => {
+    if (!wash || wash === 'Other') {
+      alert('Please select a wash process first.');
+      return;
+    }
+    const opt = washProcessOptions.find(o => o.value === wash);
+    if (opt) {
+      if (opt.temp) { setTemp(opt.temp); setTempIsStandard(true); }
+      if (opt.duration) { setDuration(opt.duration); setDurationIsStandard(true); }
+    }
+  };
+
+  // Toggle accordion panels — mutually exclusive
+  const toggleAccordion = (panel: 'shrinkage' | 'wash') => {
+    setActiveAccordion(prev => prev === panel ? null : panel);
+  };
+
   // Get shrinkage display values
   const getShrinkageDisplay = (value: number) => {
     if (value === 0) return { text: '0.0%', color: 'var(--text-main)', status: 'NO CHANGE' };
@@ -358,127 +383,167 @@ export function CalculatorPage() {
         </div>
       </div>
 
-      {/* Desktop tabs - rendered via portal into header */}
-      {portalTarget && createPortal(
-        <div className="tabs-container tabs-desktop">
-          <div className="tabs-menu">
+      {/* Desktop vertical sidebar — portaled into #sidebar-nav-portal in MainLayout */}
+      {sidebarPortalTarget && createPortal(
+        <nav className="sidebar-items">
+          <button
+            type="button"
+            className={`sidebar-btn ${calcMode === 'shrinkage' ? 'active' : ''}`}
+            onClick={() => setCalcMode('shrinkage')}
+            title="Shrinkage"
+          >
+            <i className="fas fa-ruler-combined"></i>
+          </button>
+          <button
+            type="button"
+            className={`sidebar-btn ${calcMode === 'wash' ? 'active' : ''}`}
+            onClick={() => setCalcMode('wash')}
+            title="Wash Process"
+          >
+            <i className="fas fa-tshirt"></i>
+          </button>
+          <button
+            type="button"
+            className={`sidebar-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
+            onClick={() => setCalcMode('quickmath')}
+            title="Quick Math"
+          >
+            <i className="fas fa-calculator"></i>
+          </button>
+          <button
+            type="button"
+            className={`sidebar-btn ${calcMode === 'advanced' ? 'active' : ''}`}
+            onClick={() => setCalcMode('advanced')}
+            title="Advanced"
+          >
+            <i className="fas fa-flask"></i>
+          </button>
+          <button
+            type="button"
+            className={`sidebar-btn ${calcMode === 'rollmgr' ? 'active' : ''}`}
+            onClick={() => setCalcMode('rollmgr')}
+            title="Rolls"
+          >
+            <i className="fas fa-layer-group"></i>
+          </button>
+          <div className="sidebar-divider"></div>
+          <button
+            type="button"
+            className={`sidebar-btn ${calcMode === 'results' ? 'active' : ''}`}
+            onClick={() => setCalcMode('results')}
+            title="Results"
+          >
+            <i className="fas fa-list"></i>
+          </button>
+          <button
+            type="button"
+            className="sidebar-btn"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('sync-storage'));
+              triggerSmartPrint();
+            }}
+            title="Print"
+            style={{ marginTop: 'auto' }}
+          >
+            <i className="fas fa-print"></i>
+          </button>
+        </nav>,
+        sidebarPortalTarget
+      )}
+
+      {/* Mobile bottom nav — portaled into #mobile-nav-portal in MainLayout (fixed at bottom) */}
+      {mobileNavPortalTarget && createPortal(
+        <>
+          {/* Overlay + slide-up drawer for overflow items */}
+          {moreOpen && (
+            <>
+              <div className="more-drawer-overlay" onClick={() => setMoreOpen(false)} />
+              <div className="more-drawer">
+                <div className="more-drawer-title">More</div>
+                <button
+                  type="button"
+                  className={`more-drawer-btn ${calcMode === 'wash' ? 'active' : ''}`}
+                  onClick={() => { setCalcMode('wash'); setMoreOpen(false); }}
+                >
+                  <i className="fas fa-tshirt"></i>
+                  <span>Wash Process</span>
+                </button>
+                <button
+                  type="button"
+                  className={`more-drawer-btn ${calcMode === 'results' ? 'active' : ''}`}
+                  onClick={() => { setCalcMode('results'); setMoreOpen(false); }}
+                >
+                  <i className="fas fa-list"></i>
+                  <span>Results Library</span>
+                </button>
+                <button
+                  type="button"
+                  className="more-drawer-btn"
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('sync-storage'));
+                    triggerSmartPrint();
+                    setMoreOpen(false);
+                  }}
+                >
+                  <i className="fas fa-print"></i>
+                  <span>Print Report</span>
+                </button>
+              </div>
+            </>
+          )}
+          {/* 4 primary items + More button */}
+          <div className="mobile-nav-items">
             <button
               type="button"
-              className={`tab-btn ${calcMode === 'shrinkage' ? 'active' : ''}`}
-              onClick={() => { setCalcMode('shrinkage'); }}
+              className={`mobile-nav-btn ${calcMode === 'shrinkage' ? 'active' : ''}`}
+              onClick={() => { setCalcMode('shrinkage'); setMoreOpen(false); }}
             >
-              <i className="fas fa-ruler"></i>
+              <i className="fas fa-ruler-combined"></i>
               <span>Shrinkage</span>
             </button>
             <button
               type="button"
-              className={`tab-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
-              onClick={() => { setCalcMode('quickmath'); }}
+              className={`mobile-nav-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
+              onClick={() => { setCalcMode('quickmath'); setMoreOpen(false); }}
             >
               <i className="fas fa-calculator"></i>
-              <span>Quick Math</span>
+              <span>Quick</span>
             </button>
             <button
               type="button"
-              className={`tab-btn ${calcMode === 'advanced' ? 'active' : ''}`}
-              onClick={() => { setCalcMode('advanced'); }}
+              className={`mobile-nav-btn ${calcMode === 'advanced' ? 'active' : ''}`}
+              onClick={() => { setCalcMode('advanced'); setMoreOpen(false); }}
             >
               <i className="fas fa-flask"></i>
               <span>Advanced</span>
             </button>
             <button
               type="button"
-              className={`tab-btn ${calcMode === 'rollmgr' ? 'active' : ''}`}
-              onClick={() => { setCalcMode('rollmgr'); }}
+              className={`mobile-nav-btn ${calcMode === 'rollmgr' ? 'active' : ''}`}
+              onClick={() => { setCalcMode('rollmgr'); setMoreOpen(false); }}
             >
               <i className="fas fa-layer-group"></i>
               <span>Rolls</span>
             </button>
             <button
               type="button"
-              className={`tab-btn ${calcMode === 'results' ? 'active' : ''}`}
-              onClick={() => { setCalcMode('results'); }}
+              className={`mobile-nav-btn ${moreOpen || calcMode === 'results' ? 'active' : ''}`}
+              onClick={() => setMoreOpen(prev => !prev)}
             >
-              <i className="fas fa-list"></i>
-              <span>Results</span>
-            </button>
-            <button
-              type="button"
-              className="tab-btn print-btn"
-              onClick={() => {
-                window.dispatchEvent(new CustomEvent('sync-storage'));
-                triggerSmartPrint();
-              }}
-            >
-              <i className="fas fa-print"></i>
-              <span>Print</span>
+              <i className={`fas ${moreOpen ? 'fa-times' : 'fa-ellipsis-h'}`}></i>
+              <span>More</span>
             </button>
           </div>
-        </div>,
-        portalTarget
+        </>,
+        mobileNavPortalTarget
       )}
-
-      {/* Mobile tabs - rendered directly in component tree, always visible */}
-      <div className="tabs-container tabs-mobile">
-        <div className="tabs-menu">
-          <button
-            type="button"
-            className={`tab-btn ${calcMode === 'shrinkage' ? 'active' : ''}`}
-            onClick={() => { setCalcMode('shrinkage'); }}
-          >
-            <i className="fas fa-ruler"></i>
-            <span>Shrink</span>
-          </button>
-          <button
-            type="button"
-            className={`tab-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
-            onClick={() => { setCalcMode('quickmath'); }}
-          >
-            <i className="fas fa-calculator"></i>
-            <span>Quick</span>
-          </button>
-          <button
-            type="button"
-            className={`tab-btn ${calcMode === 'advanced' ? 'active' : ''}`}
-            onClick={() => { setCalcMode('advanced'); }}
-          >
-            <i className="fas fa-flask"></i>
-            <span>Adv</span>
-          </button>
-          <button
-            type="button"
-            className={`tab-btn ${calcMode === 'rollmgr' ? 'active' : ''}`}
-            onClick={() => { setCalcMode('rollmgr'); }}
-          >
-            <i className="fas fa-layer-group"></i>
-            <span>Rolls</span>
-          </button>
-          <button
-            type="button"
-            className={`tab-btn ${calcMode === 'results' ? 'active' : ''}`}
-            onClick={() => { setCalcMode('results'); }}
-          >
-            <i className="fas fa-list"></i>
-            <span>Results</span>
-          </button>
-          <button
-            type="button"
-            className="tab-btn print-btn"
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('sync-storage'));
-              triggerSmartPrint();
-            }}
-          >
-            <i className="fas fa-print"></i>
-            <span>Print</span>
-          </button>
-        </div>
-      </div>
 
       {/* Measurement Shrinkage Tab */}
       {calcMode === 'shrinkage' && (
         <div id="calc-mode-shrinkage" className="calc-mode active">
           <div className="calc-grid">
+            {/* ── PART 1: Input Stage (hidden on mobile when results shown) ── */}
+            <div className={`shrinkage-part-input${mobileStage === 'results' ? ' mobile-part-hidden' : ''}`}>
             <div className="card">
               <div className="card-title">
                 <span>1. Measurement Data</span>
@@ -506,147 +571,68 @@ export function CalculatorPage() {
                 </select>
               </div>
 
-              {!showResults && (
-                <>
-                  <div className="input-row">
-                    <div className="input-group">
-                      <label><i className="fas fa-water" style={{ color: 'var(--primary)' }}></i> Wash Process</label>
-                      <select
-                        value={wash}
-                        onChange={(e) => handleWashChange(e.target.value)}
-                        style={{ borderColor: 'var(--primary)', fontWeight: '500' }}
-                      >
-                        {/* Deduplicate groups and options */}
-                        {Array.from(new Set(washProcessOptions.map(opt => opt.group))).filter(Boolean).map((group, idx) => (
-                          <optgroup key={group} label={group}>
-                            {washProcessOptions
-                              .filter((opt, i, arr) => opt.group === group && arr.findIndex(o => o.value === opt.value && o.group === group) === i)
-                              .map((opt) => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                      {wash === 'Other' && (
-                        <input
-                          type="text"
-                          placeholder="Type your custom wash/dye here..."
-                          value={washCustom}
-                          onChange={(e) => setWashCustom(e.target.value)}
-                          style={{ display: 'block', marginTop: '10px', borderColor: 'var(--success)' }}
-                        />
-                      )}
-                      {showTip && (
-                        <div id="smart-wash-tip" style={{ display: 'block', marginTop: '10px' }}>
-                          <i className="fas fa-lightbulb"></i> <span>{tipText}</span>
-                        </div>
-                      )}
+              {/* ── ACCORDION PANEL 1: Fabric Shrinkage (Before/After inputs) ── */}
+              <div className="accordion-item">
+                <button
+                  type="button"
+                  className={`accordion-header-btn ${activeAccordion === 'shrinkage' ? 'open' : ''}`}
+                  onClick={() => toggleAccordion('shrinkage')}
+                >
+                  <span><i className="fas fa-ruler-combined" style={{ color: 'var(--primary)' }}></i> Fabric Shrinkage</span>
+                  <i className={`fas fa-chevron-${activeAccordion === 'shrinkage' ? 'up' : 'down'} accordion-chevron`}></i>
+                </button>
+                {activeAccordion === 'shrinkage' && (
+                  <div className="accordion-body">
+                    <h4 style={{ margin: '0 0 12px', color: 'var(--primary)', borderBottom: '2px solid var(--info-light)', paddingBottom: '8px' }}>
+                      <i className="fas fa-ruler-combined"></i> Step 1: Before Wash (Original)
+                    </h4>
+                    <div className="input-row split">
+                      <Input
+                        label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Length [{unit}]</span>}
+                        type="number"
+                        placeholder="e.g. 20"
+                        value={bwL}
+                        onChange={(e) => { setBwL(e.target.value); setUserHasTyped(true); }}
+                        style={{ borderColor: '#bbdefb', backgroundColor: '#f8fbff' }}
+                      />
+                      <Input
+                        label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Width [{unit}]</span>}
+                        type="number"
+                        placeholder="e.g. 20"
+                        value={bwW}
+                        onChange={(e) => { setBwW(e.target.value); setUserHasTyped(true); }}
+                        style={{ borderColor: '#bbdefb', backgroundColor: '#f8fbff' }}
+                      />
+                    </div>
+
+                    <h4 style={{ margin: '12px 0', color: 'var(--danger)', borderBottom: '2px solid var(--danger-light)', paddingBottom: '8px' }}>
+                      <i className="fas fa-tint"></i> Step 2: After Wash (Result)
+                    </h4>
+                    <div className="input-row split">
+                      <Input
+                        label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Length [{unit}]</span>}
+                        type="number"
+                        placeholder="e.g. 18"
+                        value={awL}
+                        onChange={(e) => { setAwL(e.target.value); setUserHasTyped(true); }}
+                        style={{ borderColor: '#ffcdd2', backgroundColor: '#fffafb' }}
+                      />
+                      <Input
+                        label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Width [{unit}]</span>}
+                        type="number"
+                        placeholder="e.g. 22"
+                        value={awW}
+                        onChange={(e) => { setAwW(e.target.value); setUserHasTyped(true); }}
+                        style={{ borderColor: '#ffcdd2', backgroundColor: '#fffafb' }}
+                      />
                     </div>
                   </div>
+                )}
+              </div>
 
-                  <div className="input-row split">
-                    <Input
-                      label={
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          Temperature
-                          {tempIsStandard && (
-                            <span style={{
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              background: 'linear-gradient(135deg, #1565c0, #1976d2)',
-                              color: '#fff',
-                              padding: '1px 6px',
-                              borderRadius: '10px',
-                              letterSpacing: '0.3px',
-                              whiteSpace: 'nowrap',
-                            }}>⚡ Standard</span>
-                          )}
-                        </span>
-                      }
-                      placeholder="e.g. 40°C or Cold"
-                      value={temp}
-                      onChange={(e) => {
-                        setTemp(e.target.value);
-                        setTempIsStandard(false);
-                      }}
-                      style={tempIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}}
-                    />
-                    <Input
-                      label={
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          Duration
-                          {durationIsStandard && (
-                            <span style={{
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              background: 'linear-gradient(135deg, #1565c0, #1976d2)',
-                              color: '#fff',
-                              padding: '1px 6px',
-                              borderRadius: '10px',
-                              letterSpacing: '0.3px',
-                              whiteSpace: 'nowrap',
-                            }}>⚡ Standard</span>
-                          )}
-                        </span>
-                      }
-                      placeholder="e.g. 45 mins"
-                      value={duration}
-                      onChange={(e) => {
-                        setDuration(e.target.value);
-                        setDurationIsStandard(false);
-                      }}
-                      style={durationIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}}
-                    />
-                  </div>
 
-                  <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '20px 0' }} />
 
-                  <h4 style={{ margin: '15px 0', color: 'var(--primary)', borderBottom: '2px solid var(--info-light)', paddingBottom: '8px' }}>
-                    <i className="fas fa-ruler-combined"></i> Step 1: Before Wash (Original)
-                  </h4>
-                  <div className="input-row split">
-                    <Input
-                      label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Length [{unit}]</span>}
-                      type="number"
-                      placeholder="e.g. 20"
-                      value={bwL}
-                      onChange={(e) => { setBwL(e.target.value); setUserHasTyped(true); }}
-                      style={{ borderColor: '#bbdefb', backgroundColor: '#f8fbff' }}
-                    />
-                    <Input
-                      label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Width [{unit}]</span>}
-                      type="number"
-                      placeholder="e.g. 20"
-                      value={bwW}
-                      onChange={(e) => { setBwW(e.target.value); setUserHasTyped(true); }}
-                      style={{ borderColor: '#bbdefb', backgroundColor: '#f8fbff' }}
-                    />
-                  </div>
-
-                  <h4 style={{ margin: '15px 0', color: 'var(--danger)', borderBottom: '2px solid var(--danger-light)', paddingBottom: '8px' }}>
-                    <i className="fas fa-tint"></i> Step 2: After Wash (Result)
-                  </h4>
-                  <div className="input-row split">
-                    <Input
-                      label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Length [{unit}]</span>}
-                      type="number"
-                      placeholder="e.g. 18"
-                      value={awL}
-                      onChange={(e) => { setAwL(e.target.value); setUserHasTyped(true); }}
-                      style={{ borderColor: '#ffcdd2', backgroundColor: '#fffafb' }}
-                    />
-                    <Input
-                      label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Width [{unit}]</span>}
-                      type="number"
-                      placeholder="e.g. 22"
-                      value={awW}
-                      onChange={(e) => { setAwW(e.target.value); setUserHasTyped(true); }}
-                      style={{ borderColor: '#ffcdd2', backgroundColor: '#fffafb' }}
-                    />
-                  </div>
-                </>
-              )}
-
+              {/* Results — shown between accordion and action buttons */}
               {showResults && (
                 <div className="results-box" style={{ marginTop: '10px' }}>
                   <h4><i className="fas fa-percentage"></i> Calculated Results</h4>
@@ -666,14 +652,15 @@ export function CalculatorPage() {
                 </div>
               )}
 
-              <div className="calc-btn-container" style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Action buttons — always visible at the bottom of the card */}
+              <div className="calc-btn-container" style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <Button
                   variant="primary"
                   style={{ width: '100%', padding: '15px', fontSize: '16px' }}
-                  onClick={showResults ? () => setShowResults(false) : handleCalculate}
+                  onClick={handleCalculate}
                   icon={<i className="fas fa-cog"></i>}
                 >
-                  {showResults ? 'Calculate New' : 'Calculate Shrinkage'}
+                  {showResults ? 'Recalculate' : 'Calculate Shrinkage'}
                 </Button>
                 <Button
                   variant="danger"
@@ -694,7 +681,39 @@ export function CalculatorPage() {
                   </Button>
                 )}
               </div>
-            </div>
+            </div>{/* end card */}
+            </div>{/* end shrinkage-part-input */}
+
+            {/* ── PART 2: Results + Visual (hidden on mobile until Calculate clicked) ── */}
+            <div className={`shrinkage-part-results${mobileStage === 'input' ? ' mobile-part-hidden' : ''}`}>
+              {/* Back to Edit button — mobile only */}
+              <button
+                type="button"
+                className="mobile-back-edit-btn"
+                onClick={() => setMobileStage('input')}
+              >
+                <i className="fas fa-arrow-left"></i> Back to Edit
+              </button>
+
+              {/* Results panel — shown inside Part 2 on mobile */}
+              {showResults && (
+                <div className="results-box mobile-results-box" style={{ marginBottom: '12px' }}>
+                  <h4><i className="fas fa-percentage"></i> Calculated Results</h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '14px', color: 'var(--text-light)', fontWeight: '700', marginBottom: '5px' }}>LENGTH (Horizontal)</div>
+                      <div style={{ fontSize: '28px', fontWeight: '900', color: lDisplay.color }}>{lDisplay.text}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 'bold', color: lDisplay.color }}>{lDisplay.status}</div>
+                    </div>
+                    <div style={{ width: '2px', height: '50px', background: '#ffcdd2' }}></div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '14px', color: 'var(--text-light)', fontWeight: '700', marginBottom: '5px' }}>WIDTH (Vertical)</div>
+                      <div style={{ fontSize: '28px', fontWeight: '900', color: wDisplay.color }}>{wDisplay.text}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 'bold', color: wDisplay.color }}>{wDisplay.status}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             <Preview
               widthShrink={widthShrink}
@@ -710,6 +729,134 @@ export function CalculatorPage() {
               onWashedWidthChange={handleSliderWidthChange}
               hideSliders={userHasTyped}
             />
+            </div>{/* end shrinkage-part-results */}
+          </div>
+        </div>
+      )}
+
+      {/* Wash Process Tab */}
+      {calcMode === 'wash' && (
+        <div id="calc-mode-wash" className="calc-mode active">
+          <div className="calc-grid" style={{ gridTemplateColumns: '1fr' }}>
+            <div className="card">
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <i className="fas fa-tshirt" style={{ color: 'var(--primary)', fontSize: '18px' }}></i>
+                <span>Wash Process Settings</span>
+                <button
+                  type="button"
+                  className="wash-autofill-btn"
+                  onClick={handleAutoFillWashParams}
+                  title="Auto-fill standard temperature & duration for selected wash process"
+                  style={{ marginLeft: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', background: 'var(--secondary)', color: 'var(--text-light)' }}
+                >
+                  <i className="fas fa-magic"></i> Auto-Fill Standards
+                </button>
+              </div>
+
+              <div className="input-row" style={{ marginBottom: '16px' }}>
+                <div className="input-group">
+                  <label><i className="fas fa-water" style={{ color: 'var(--primary)' }}></i> Wash Process</label>
+                  <select
+                    value={wash}
+                    onChange={(e) => handleWashChange(e.target.value)}
+                    style={{ borderColor: 'var(--primary)', fontWeight: '500' }}
+                  >
+                    {Array.from(new Set(washProcessOptions.map(opt => opt.group))).filter(Boolean).map((group) => (
+                      <optgroup key={group} label={group}>
+                        {washProcessOptions
+                          .filter((opt, i, arr) => opt.group === group && arr.findIndex(o => o.value === opt.value && o.group === group) === i)
+                          .map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  {wash === 'Other' && (
+                    <input
+                      type="text"
+                      placeholder="Type your custom wash/dye here..."
+                      value={washCustom}
+                      onChange={(e) => setWashCustom(e.target.value)}
+                      style={{ display: 'block', marginTop: '10px', borderColor: 'var(--success)' }}
+                    />
+                  )}
+                  {showTip && (
+                    <div id="smart-wash-tip" style={{ display: 'block', marginTop: '10px' }}>
+                      <i className="fas fa-lightbulb"></i> <span>{tipText}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="input-row split">
+                <Input
+                  label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Temperature
+                      {tempIsStandard && (
+                        <span style={{
+                          fontSize: '10px', fontWeight: 700,
+                          background: 'linear-gradient(135deg, #1565c0, #1976d2)',
+                          color: '#fff', padding: '1px 6px', borderRadius: '10px',
+                          letterSpacing: '0.3px', whiteSpace: 'nowrap',
+                        }}>⚡ Standard</span>
+                      )}
+                    </span>
+                  }
+                  placeholder="e.g. 40°C or Cold"
+                  value={temp}
+                  onChange={(e) => { setTemp(e.target.value); setTempIsStandard(false); }}
+                  style={tempIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}}
+                />
+                <Input
+                  label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Duration
+                      {durationIsStandard && (
+                        <span style={{
+                          fontSize: '10px', fontWeight: 700,
+                          background: 'linear-gradient(135deg, #1565c0, #1976d2)',
+                          color: '#fff', padding: '1px 6px', borderRadius: '10px',
+                          letterSpacing: '0.3px', whiteSpace: 'nowrap',
+                        }}>⚡ Standard</span>
+                      )}
+                    </span>
+                  }
+                  placeholder="e.g. 45 mins"
+                  value={duration}
+                  onChange={(e) => { setDuration(e.target.value); setDurationIsStandard(false); }}
+                  style={durationIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}}
+                />
+              </div>
+
+              {wash && wash !== '' && (
+                <div style={{ marginTop: '20px', padding: '14px', background: 'var(--info-light)', borderRadius: '10px', border: '1px solid #bbdefb' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <i className="fas fa-info-circle"></i> Current Selection
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>
+                    {wash === 'Other' ? (washCustom || 'Custom Wash') : (wash || 'None selected')}
+                  </div>
+                  {(temp || duration) && (
+                    <div style={{ display: 'flex', gap: '20px', marginTop: '10px', flexWrap: 'wrap' }}>
+                      {temp && <div style={{ fontSize: '13px', color: 'var(--text-light)' }}><i className="fas fa-thermometer-half" style={{ color: 'var(--primary)' }}></i> {temp}</div>}
+                      {duration && <div style={{ fontSize: '13px', color: 'var(--text-light)' }}><i className="fas fa-clock" style={{ color: 'var(--primary)' }}></i> {duration}</div>}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ marginTop: '20px' }}>
+                <Button
+                  variant="primary"
+                  style={{ width: '100%', padding: '14px', fontSize: '15px' }}
+                  onClick={() => setCalcMode('shrinkage')}
+                  icon={<i className="fas fa-arrow-left"></i>}
+                >
+                  Back to Shrinkage
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}

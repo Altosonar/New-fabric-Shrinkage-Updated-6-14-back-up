@@ -99,7 +99,7 @@ export interface AdvancedRow {
 }
 
 // Calculator mode
-export type CalcMode = 'shrinkage' | 'quickmath' | 'advanced' | 'rollmgr' | 'results';
+export type CalcMode = 'shrinkage' | 'wash' | 'quickmath' | 'advanced' | 'rollmgr' | 'results';
 
 // View type
 export type ViewType = 'calculator' | 'results';

@@ -7,15 +7,24 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="app-container">
-      <header className="top-header">
-        <div className="logo">
-          <i className="fas fa-layer-group"></i> Fabric Shrinkage Calculator
+      {/* Desktop vertical sidebar — nav items portaled in from CalculatorPage */}
+      <aside className="sidebar-nav">
+        <div className="sidebar-logo">
+          <i className="fas fa-layer-group"></i>
         </div>
-        <div id="header-nav-portal"></div>
-      </header>
-      <main className="main-content">
-        {children}
-      </main>
+        {/* Portal target for sidebar nav buttons */}
+        <div id="sidebar-nav-portal" className="sidebar-nav-items"></div>
+      </aside>
+
+      {/* Main body — content sits to the right of the sidebar */}
+      <div className="app-body">
+        <main className="main-content">
+          {children}
+        </main>
+      </div>
+
+      {/* Mobile bottom navigation portal target — nav items portaled in from CalculatorPage */}
+      <nav id="mobile-nav-portal" className="mobile-bottom-nav"></nav>
     </div>
   );
 }

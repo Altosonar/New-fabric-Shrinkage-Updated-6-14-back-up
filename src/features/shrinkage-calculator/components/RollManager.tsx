@@ -44,6 +44,8 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   const [samplingLots, setSamplingLots] = useLocalStorage('rollManagerSamplingLots', '3');
   const [samplingStd, setSamplingStd] = useLocalStorage<'10pct' | 'sqrt' | '100pct'>('rollManagerSamplingStd', '10pct');
   const [deletedStack, setDeletedStack] = useState<Array<{ row: RollRow }>>([]);
+  // Tabbed interface: 'measurements' | 'analytics'
+  const [rollTab, setRollTab] = useState<'measurements' | 'analytics'>('measurements');
 
 
   // Save modal states
@@ -411,6 +413,29 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
     <div className="card">
       <h2 style={{ marginBottom: '10px', color: 'var(--primary)' }}>Multi-Roll Shipment Manager</h2>
 
+      {/* ── Sticky Tab Navigation (mobile) ── */}
+      <div className="rm-tab-bar">
+        <button
+          type="button"
+          className={`rm-tab-btn${rollTab === 'measurements' ? ' active' : ''}`}
+          onClick={() => setRollTab('measurements')}
+        >
+          <i className="fas fa-table"></i> Measurements
+        </button>
+        <button
+          type="button"
+          className={`rm-tab-btn${rollTab === 'analytics' ? ' active' : ''}`}
+          onClick={() => setRollTab('analytics')}
+        >
+          <i className="fas fa-chart-bar"></i> Roll Groups &amp; Stats
+          {(stats.rangeL > RECOMMENDATION_THRESHOLD || stats.rangeW > RECOMMENDATION_THRESHOLD) && completeRowCount > 0 && (
+            <span className="rm-tab-badge">!</span>
+          )}
+        </button>
+      </div>
+
+      {/* ── PART 1: Raw Measurements (Sampling + Table + Actions) ── */}
+      <div className={`rm-tab-panel${rollTab === 'measurements' ? ' rm-tab-active' : ''}`}>
       {/* ── Sampling Calculator ─────────────────────────────────────────────── */}
       <div className="sampling-card">
         <div className="sampling-header">
@@ -614,7 +639,10 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
         <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={handleRestoreLast} disabled={deletedStack.length === 0}>Restore Last</Button>
         <Button variant="primary" icon={<i className="fas fa-plus"></i>} onClick={handleAddRow}>Add Roll</Button>
       </div>
+      </div>{/* end rm-tab-panel measurements */}
 
+      {/* ── PART 2: Roll Analytics (Stats + Groups) ── */}
+      <div className={`rm-tab-panel${rollTab === 'analytics' ? ' rm-tab-active' : ''}`}>
       {/* ── Roll Statistics Card ────────────────────────────────────────────── */}
       <div className="rm-stats-card">
         <div className="rm-stats-header">
@@ -732,8 +760,7 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
           </div>
         </div>
       )}
-
-
+      </div>{/* end rm-tab-panel analytics */}
 
       {/* ── Save Group Modal ─────────────────────────────────────────────────── */}
       <Modal isOpen={saveGroupModalOpen} onClose={() => setSaveGroupModalOpen(false)} title="Save Roll Group">
