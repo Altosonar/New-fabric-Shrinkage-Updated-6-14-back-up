@@ -26,11 +26,11 @@ interface RollRow {
 }
 
 const defaultRows: RollRow[] = [
-  { order: 1, id: 'R1', bL: '20', bW: '20', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 2, id: 'R2', bL: '20', bW: '20', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 3, id: 'R3', bL: '20', bW: '20', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 4, id: 'R4', bL: '20', bW: '20', aL: '', aW: '', sL: '-', sW: '-', group: '' },
-  { order: 5, id: 'R5', bL: '20', bW: '20', aL: '', aW: '', sL: '-', sW: '-', group: '' },
+  { order: 1, id: 'R1', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
+  { order: 2, id: 'R2', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
+  { order: 3, id: 'R3', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
+  { order: 4, id: 'R4', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
+  { order: 5, id: 'R5', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
 ];
 
 export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
@@ -38,7 +38,8 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   const { showAlert, showConfirm } = useDialog();
   const nextOrderRef = useRef(6);
   const lastClearTokenRef = useRef<string | null>(null);
-  const [rows, setRows] = useLocalStorage<RollRow[]>('rollManagerRows_v2', defaultRows);
+  const [rows, setRows] = useLocalStorage<RollRow[]>('rollManagerRows_v3', defaultRows);
+  const [fillDownVisible, setFillDownVisible] = useState<{ bL: boolean; bW: boolean }>({ bL: false, bW: false });
   const [stats, setStats] = useState<RollStats>({ avgL: 0, avgW: 0, rangeL: 0, rangeW: 0 });
   const [groupedRolls, setGroupedRolls] = useLocalStorage<GroupedRoll[]>('rollManagerGroupedRolls', []);
   const [recommendation, setRecommendation] = useState({ text: 'Enter measurements to analyze.', type: 'normal' });
@@ -80,6 +81,17 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
         return row;
       });
     });
+    // Show fill-down pill when row 0 Before field is non-empty
+    if (rowIndex === 0 && (field === 'bL' || field === 'bW')) {
+      setFillDownVisible(prev => ({ ...prev, [field]: value.trim() !== '' }));
+    }
+  };
+
+  const handleFillDown = (field: 'bL' | 'bW') => {
+    const topValue = rows[0]?.[field];
+    if (!topValue) return;
+    setRows(prev => prev.map((row, i) => i === 0 ? row : { ...row, [field]: topValue }));
+    setFillDownVisible(prev => ({ ...prev, [field]: false }));
   };
 
   // Auto-populate bL/bW from first row on blur
@@ -606,19 +618,29 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
                       onChange={(e) => handleRowChange(idx, 'id', e.target.value)}
                     />
                   </td>
-                  <td>
+                  <td className={idx === 0 ? 'fill-down-cell' : ''}>
                     <input
                       type="number" step="any" value={row.bL}
                       onChange={(e) => handleRowChange(idx, 'bL', e.target.value)}
                       onBlur={idx === 0 ? (e) => handleFirstRowBlur('bL', e.target.value) : undefined}
                     />
+                    {idx === 0 && fillDownVisible.bL && (
+                      <button className="fill-down-pill" onMouseDown={(e) => { e.preventDefault(); handleFillDown('bL'); }} title="Copy to all rows">
+                        <i className="fas fa-arrow-down"></i> Fill Down
+                      </button>
+                    )}
                   </td>
-                  <td>
+                  <td className={idx === 0 ? 'fill-down-cell' : ''}>
                     <input
                       type="number" step="any" value={row.bW}
                       onChange={(e) => handleRowChange(idx, 'bW', e.target.value)}
                       onBlur={idx === 0 ? (e) => handleFirstRowBlur('bW', e.target.value) : undefined}
                     />
+                    {idx === 0 && fillDownVisible.bW && (
+                      <button className="fill-down-pill" onMouseDown={(e) => { e.preventDefault(); handleFillDown('bW'); }} title="Copy to all rows">
+                        <i className="fas fa-arrow-down"></i> Fill Down
+                      </button>
+                    )}
                   </td>
                   <td>
                     <input

@@ -303,6 +303,7 @@ function DataTab({ settings, updateSetting }: {
       'shrinkage_settings', 'shrinkage_wash_profiles',
       'clear-all-token',
       // versioned keys introduced in v2 defaults update
+      'rollManagerRows_v3', 'advancedTestRows_v3',
       'rollManagerRows_v2', 'advancedTestRows_v2',
       // older unversioned keys (in case device has legacy data)
       'rollManagerRows', 'advancedTestRows',
