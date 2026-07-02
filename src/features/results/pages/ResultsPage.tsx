@@ -9,8 +9,7 @@ import {
 import {
   printPatternMaker,
   printFactoryCutSheet,
-  printSummaryLedger,
-  triggerSmartPrint
+  printSummaryLedger
 } from '../../../utils/printReport';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
