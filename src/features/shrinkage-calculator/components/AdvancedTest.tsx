@@ -19,7 +19,7 @@ interface RowData {
   sW: string;
 }
 
-const makeBlankRow = (): RowData => ({ bL: '20', bW: '20', aL: '20', aW: '20', sL: '-', sW: '-' });
+const makeBlankRow = (): RowData => ({ bL: '20', bW: '20', aL: '', aW: '', sL: '-', sW: '-' });
 
 const defaultRows: RowData[] = [
   makeBlankRow(),
@@ -29,7 +29,7 @@ const defaultRows: RowData[] = [
 
 export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   const { addResult } = useResults();
-  const [rows, setRows] = useLocalStorage<RowData[]>('advancedTestRows', defaultRows);
+  const [rows, setRows] = useLocalStorage<RowData[]>('advancedTestRows_v2', defaultRows);
   const [avgL, setAvgL] = useState(0);
   const [avgW, setAvgW] = useState(0);
   const [validSampleCount, setValidSampleCount] = useState(0);
@@ -118,12 +118,12 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
 
   // ── Row mutations ────────────────────────────────────────────────────────────
   const handleRowChange = (rowIndex: number, field: keyof RowData, value: string) => {
-    const cascadeFields: (keyof RowData)[] = ['bL', 'bW', 'aL', 'aW'];
+    const cascadeFields: (keyof RowData)[] = ['bL', 'bW'];
     setRows(prev => {
       const prevTop = prev[0]?.[field];
       return prev.map((row, i) => {
         if (i === rowIndex) return { ...row, [field]: value };
-        // Cascade the top row's Before/After down to rows that still hold the old
+        // Cascade the top row's Before values down to rows that still hold the old
         // top value (auto-filled / default), preserving manually-edited samples.
         if (rowIndex === 0 && cascadeFields.includes(field) && (row[field] === prevTop || row[field] === '')) {
           return { ...row, [field]: value };
@@ -136,12 +136,10 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   const handleAddRow = () => {
     setRows(prev => {
       const newRow = makeBlankRow();
-      // Inherit Before/After from row 0 (cascading default)
+      // Inherit Before values from row 0 (cascading default); After stays empty
       if (prev.length > 0) {
         newRow.bL = prev[0].bL;
         newRow.bW = prev[0].bW;
-        newRow.aL = prev[0].aL;
-        newRow.aW = prev[0].aW;
       }
       return [...prev, newRow];
     });
