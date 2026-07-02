@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useResults } from '../../../store/ResultsContext';
@@ -67,8 +67,11 @@ export function CalculatorPage() {
   const [showResults, setShowResults] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileStage, setMobileStage] = useState<'input' | 'results'>('input');
-  // Accordion: 'shrinkage' expanded by default, 'wash' collapsed
-  const [activeAccordion, setActiveAccordion] = useState<'shrinkage' | 'wash' | null>('shrinkage');
+  // Accordion: only wash panel remains (shrinkage form is always visible)
+  const [activeAccordion, setActiveAccordion] = useState<'wash' | null>(null);
+
+  // Ref for auto-scrolling to the visualizer on desktop after Calculate
+  const previewRef = useRef<HTMLDivElement>(null);
 
   // Save modal state
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -148,6 +151,10 @@ export function CalculatorPage() {
     recalculate(bwW, awW, bwL, awL);
     setShowResults(true);
     setMobileStage('results');
+    // On desktop, scroll the visualizer panel into view smoothly
+    setTimeout(() => {
+      previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
   }, [bwW, awW, bwL, awL, recalculate]);
 
   // Slider callbacks — update the washed value and recalculate instantly
@@ -376,7 +383,7 @@ export function CalculatorPage() {
   };
 
   // Toggle accordion panels — mutually exclusive
-  const toggleAccordion = (panel: 'shrinkage' | 'wash') => {
+  const toggleAccordion = (panel: 'wash') => {
     setActiveAccordion(prev => prev === panel ? null : panel);
   };
 
@@ -607,18 +614,8 @@ export function CalculatorPage() {
                 </select>
               </div>
 
-              {/* ── ACCORDION PANEL 1: Fabric Shrinkage (Before/After inputs) ── */}
-              <div className="accordion-item">
-                <button
-                  type="button"
-                  className={`accordion-header-btn ${activeAccordion === 'shrinkage' ? 'open' : ''}`}
-                  onClick={() => toggleAccordion('shrinkage')}
-                >
-                  <span><i className="fas fa-ruler-combined" style={{ color: 'var(--primary)' }}></i> Fabric Shrinkage</span>
-                  <i className={`fas fa-chevron-${activeAccordion === 'shrinkage' ? 'up' : 'down'} accordion-chevron`}></i>
-                </button>
-                {activeAccordion === 'shrinkage' && (
-                  <div className="accordion-body">
+              {/* ── Fabric Shrinkage form — always visible, no accordion wrapper ── */}
+              <div style={{ padding: '0 0 4px' }}>
                     <h4 style={{ margin: '0 0 12px', color: 'var(--primary)', borderBottom: '2px solid var(--info-light)', paddingBottom: '8px' }}>
                       <i className="fas fa-ruler-combined"></i> Step 1: Before Wash (Original)
                     </h4>
@@ -662,8 +659,6 @@ export function CalculatorPage() {
                         style={{ borderColor: '#ffcdd2', backgroundColor: '#fffafb' }}
                       />
                     </div>
-                  </div>
-                )}
               </div>
 
 
@@ -721,7 +716,7 @@ export function CalculatorPage() {
             </div>{/* end shrinkage-part-input */}
 
             {/* ── PART 2: Results + Visual (hidden on mobile until Calculate clicked) ── */}
-            <div className={`shrinkage-part-results${mobileStage === 'input' ? ' mobile-part-hidden' : ''}`}>
+            <div ref={previewRef} className={`shrinkage-part-results${mobileStage === 'input' ? ' mobile-part-hidden' : ''}`}>
               {/* Back to Edit button — mobile only */}
               <button
                 type="button"
