@@ -296,9 +296,22 @@ function DataTab({ settings, updateSetting }: {
 
   const handleWipeAll = () => {
     if (clearInput !== 'CLEAR') return;
-    // Wipe every known key
-    ['shrinkStudioResults', 'shrinkage_folders', 'shrinkage_tags',
-     'shrinkage_settings', 'shrinkage_wash_profiles', 'clear-all-token'].forEach(k => localStorage.removeItem(k));
+    // Wipe every known key (including versioned storage keys)
+    [
+      'shrinkStudioResults',
+      'shrinkage_folders', 'shrinkage_tags',
+      'shrinkage_settings', 'shrinkage_wash_profiles',
+      'clear-all-token',
+      // versioned keys introduced in v2 defaults update
+      'rollManagerRows_v2', 'advancedTestRows_v2',
+      // older unversioned keys (in case device has legacy data)
+      'rollManagerRows', 'advancedTestRows',
+      // sampling state
+      'rollManagerSamplingTotal', 'rollManagerSamplingLots', 'rollManagerSamplingStd',
+      'rollManagerGroupedRolls',
+      // advanced test state
+      'advancedTestDesiredL', 'advancedTestDesiredW',
+    ].forEach(k => localStorage.removeItem(k));
     window.location.reload();
   };
 
