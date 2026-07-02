@@ -2881,14 +2881,12 @@ body {
 .stg-page { padding-bottom: 80px; }
 
 .stg-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  align-items: flex-start;
-  margin-top: 16px;
+  display: block;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
+  margin-top: 16px;
 }
 
 /* ── Tab nav (horizontal pills default, vertical on desktop) ─────────────────── */
@@ -2909,9 +2907,9 @@ body {
 .stg-tab-nav::-webkit-scrollbar { display: none; }
 
 .stg-tab-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 8px 14px;
   border-radius: 10px;
   border: none;
@@ -2924,14 +2922,13 @@ body {
   color: var(--text-light);
   text-align: left;
   transition: background 0.15s, color 0.15s;
-  width: 100%;
 }
 .stg-tab-btn:hover  { background: var(--secondary); color: var(--text-main); }
 .stg-tab-btn i      { width: 16px; text-align: center; font-size: 14px; }
 .stg-tab-btn-active { background: var(--primary) !important; color: #fff !important; }
 
 /* ── Tab content ─────────────────────────────────────────────────────────────── */
-.stg-tab-content { flex: 1; min-width: 0; width: 100%; box-sizing: border-box; }
+.stg-tab-content { display: block; width: 100%; max-width: 100%; box-sizing: border-box; overflow-x: hidden; }
 
 /* ── Section ─────────────────────────────────────────────────────────────────── */
 .stg-section {
@@ -3281,7 +3278,10 @@ body {
 /* ── Desktop: switch to vertical sidebar layout ─────────────────────────────── */
 @media screen and (min-width: 769px) {
   .stg-layout {
-    flex-direction: row;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start;
+    gap: 0;
     overflow-x: visible;
   }
   .stg-tab-nav {
@@ -3297,11 +3297,19 @@ body {
     position: sticky;
     top: 16px;
     gap: 4px;
+    scrollbar-width: auto;
   }
+  .stg-tab-nav::-webkit-scrollbar { display: auto; }
   .stg-tab-btn {
+    display: flex;
     padding: 10px 14px;
     white-space: normal;
     width: 100%;
+  }
+  .stg-tab-content {
+    flex: 1;
+    min-width: 0;
+    overflow-x: visible;
   }
 }
 
@@ -3364,11 +3372,17 @@ body {
   .res-header-secondary { display: none !important; }
   .res-header-overflow-btn { display: inline-flex !important; }
 
-  /* Settings layout — already mobile-first in base CSS, just ensure containment */
+  /* Settings layout — block-based on mobile, fully contained */
   .stg-section {
-    width: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  .stg-tab-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
   .stg-toggle-wrap {
     flex-wrap: wrap;
