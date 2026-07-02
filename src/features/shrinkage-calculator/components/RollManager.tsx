@@ -686,11 +686,15 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
 
       {/* ── Action Buttons ──────────────────────────────────────────────────── */}
       <div className="roll-group-actions">
-        <Button variant="danger" className="clear-all-btn" icon={<i className="fas fa-trash-alt"></i>} onClick={handleClearAll}>Clear All</Button>
-        <Button variant="success" className="save-group-btn" icon={<i className="fas fa-save"></i>} onClick={openSaveGroupModal}>Group to Library</Button>
-        <Button variant="success" className="save-shipment-btn" icon={<i className="fas fa-save"></i>} onClick={openSaveShipmentModal}>Shipment Lot</Button>
-        <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={handleRestoreLast} disabled={deletedStack.length === 0}>Restore Last</Button>
-        <Button variant="primary" icon={<i className="fas fa-plus"></i>} onClick={handleAddRow}>Add Roll</Button>
+        <div className="roll-action-row">
+          <Button variant="danger" className="clear-all-btn" icon={<i className="fas fa-trash-alt"></i>} onClick={handleClearAll}>Clear All</Button>
+          <Button variant="success" className="save-group-btn" icon={<i className="fas fa-save"></i>} onClick={openSaveGroupModal}>Group to Library</Button>
+        </div>
+        <div className="roll-action-row">
+          <Button variant="success" className="save-shipment-btn" icon={<i className="fas fa-save"></i>} onClick={openSaveShipmentModal}>Shipment Lot</Button>
+          <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={handleRestoreLast} disabled={deletedStack.length === 0}>Restore Last</Button>
+        </div>
+        <Button variant="primary" className="roll-add-btn" icon={<i className="fas fa-plus"></i>} onClick={handleAddRow}>+ Add Roll</Button>
       </div>
       </div>{/* end rm-tab-panel measurements */}
 
