@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useResults } from '../../../store/ResultsContext';
+import { useSettings } from '../../../hooks/useSettings';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Modal } from '../../../components/ui/Modal';
@@ -18,6 +19,7 @@ import { triggerSmartPrint } from '../../../utils/printReport';
 export function CalculatorPage() {
   const navigate = useNavigate();
   const { state, addResult, updateResult, setEditingId } = useResults();
+  const { settings } = useSettings();
   const [calcMode, setCalcMode] = useState<CalcMode>('shrinkage');
   const [unit, setUnit] = useState<Unit>('inches');
   const [editingId, setEditingIdLocal] = useState<number | null>(null);
@@ -29,6 +31,23 @@ export function CalculatorPage() {
     setSidebarPortalTarget(document.getElementById('sidebar-nav-portal'));
     setMobileNavPortalTarget(document.getElementById('mobile-nav-portal'));
   }, []);
+
+  // Sync unit with Settings — apply conversion when Settings toggles change
+  useEffect(() => {
+    const newUnit: Unit = settings.measurementUnit === 'cm' ? 'cm' : 'inches';
+    if (newUnit === unit) return;
+    const factor = newUnit === 'cm' ? 2.54 : 1 / 2.54;
+    const conv = (v: string) => {
+      const n = parseFloat(v);
+      return (!v || isNaN(n)) ? v : (n * factor).toFixed(2);
+    };
+    setBwL(prev => conv(prev));
+    setBwW(prev => conv(prev));
+    setAwL(prev => conv(prev));
+    setAwW(prev => conv(prev));
+    setUnit(newUnit);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.measurementUnit]);
 
   // Form state for shrinkage calculator
   const [wash, setWash] = useState('');
@@ -605,7 +624,7 @@ export function CalculatorPage() {
                     </h4>
                     <div className="input-row split">
                       <Input
-                        label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Length [{unit}]</span>}
+                        label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Length [{unit === 'inches' ? 'in' : 'cm'}]</span>}
                         type="number"
                         placeholder="e.g. 20"
                         value={bwL}
@@ -613,7 +632,7 @@ export function CalculatorPage() {
                         style={{ borderColor: '#bbdefb', backgroundColor: '#f8fbff' }}
                       />
                       <Input
-                        label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Width [{unit}]</span>}
+                        label={<span style={{ color: 'var(--primary)', fontWeight: 700 }}>Original Width [{unit === 'inches' ? 'in' : 'cm'}]</span>}
                         type="number"
                         placeholder="e.g. 20"
                         value={bwW}
@@ -627,7 +646,7 @@ export function CalculatorPage() {
                     </h4>
                     <div className="input-row split">
                       <Input
-                        label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Length [{unit}]</span>}
+                        label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Length [{unit === 'inches' ? 'in' : 'cm'}]</span>}
                         type="number"
                         placeholder="e.g. 18"
                         value={awL}
@@ -635,7 +654,7 @@ export function CalculatorPage() {
                         style={{ borderColor: '#ffcdd2', backgroundColor: '#fffafb' }}
                       />
                       <Input
-                        label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Width [{unit}]</span>}
+                        label={<span style={{ color: 'var(--danger)', fontWeight: 700 }}>Washed Width [{unit === 'inches' ? 'in' : 'cm'}]</span>}
                         type="number"
                         placeholder="e.g. 22"
                         value={awW}
