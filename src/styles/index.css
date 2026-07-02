@@ -1983,8 +1983,8 @@ body {
   }
   .width-slider-vertical { display: none !important; }
   .width-slider-horizontal { display: block !important; width: calc(100% - 24px); margin: 8px 12px 0; padding: 6px 8px; }
-  .preview-box { max-height: 32vh; max-width: 92vw; width: 100%; margin: 0 auto; aspect-ratio: 1 / 1; overflow: visible; }
-  .results-box { padding: 6px; }
+  .preview-box { max-height: none; max-width: 100%; width: 100%; margin: 0 auto; aspect-ratio: 1 / 1; overflow: visible; }
+  .results-box { padding: 6px 10px; }
   .visualizer-wrapper { margin-bottom: 6px; justify-content: center; padding: 0; overflow: visible; }
   input[type="range"] { height: 32px; -webkit-appearance: none; background: transparent; margin: 6px 0; }
   input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: #e6eef8; }
@@ -1996,10 +1996,13 @@ body {
   .shrink-label { padding: 3px 6px; font-size: 11px; border-radius: 8px; }
   .preview-label-footer { font-size: 13px; margin-top: 8px; }
   .shrinkage-indicator { font-size: 12px; padding: 4px 8px; }
-  .results-box { padding: 8px; margin-top: 8px; }
-  .results-box h4 { font-size: 13px; margin-bottom: 8px; }
+  .results-box { padding: 8px 10px; margin-top: 6px; }
+  .results-box h4 { font-size: 13px; margin-bottom: 6px; padding-bottom: 6px; }
   #lengthDisplay, #widthDisplay { font-size: 22px !important; }
-  .preview-box { border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+  .preview-box { border-radius: 10px; box-shadow: 0 6px 20px rgba(25,118,210,0.12); max-height: none; max-width: 100%; width: 100%; }
+  /* Full-bleed visualizer — pull shrinkage-part-results edge-to-edge on mobile */
+  .shrinkage-part-results { margin-left: -12px; margin-right: -12px; padding: 0 12px; }
+  .mobile-results-box { margin-left: 0 !important; margin-right: 0 !important; }
 
   /* Calculate & action buttons — fixed above mobile bottom nav */
   .calc-btn-container {
@@ -3417,5 +3420,84 @@ body {
   }
   .res-header-actions {
     width: 100%;
+  }
+}
+
+/* ── Sampling Calculator collapsible header ──────────────────────────────────── */
+.sampling-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  gap: 10px;
+}
+.sampling-collapse-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.sampling-collapse-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.sampling-collapse-summary {
+  font-size: 13px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.sampling-collapse-summary strong {
+  color: var(--primary);
+  font-size: 14px;
+}
+.sampling-collapse-std {
+  background: var(--info-light);
+  color: var(--primary);
+  border: 1px solid #bbdefb;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.sampling-collapse-icon {
+  font-size: 12px;
+  color: var(--text-light);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+/* Results box: tighten mobile vertical footprint while keeping numbers large */
+@media screen and (max-width: 768px) {
+  .results-box {
+    padding: 8px 10px;
+    margin-top: 4px;
+    margin-bottom: 0;
+  }
+  .results-box h4 {
+    font-size: 12px;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+  }
+  /* Keep numbers large — only reduce label size */
+  .results-box [style*="font-size: 28px"],
+  .results-box [style*="font-size: 24px"] {
+    font-size: 26px !important;
+  }
+  .results-box [style*="font-size: 14px"][style*="font-weight: 700"] {
+    font-size: 11px !important;
+    margin-bottom: 2px !important;
+  }
+  .results-box [style*="height: 50px"] {
+    height: 36px !important;
   }
 }

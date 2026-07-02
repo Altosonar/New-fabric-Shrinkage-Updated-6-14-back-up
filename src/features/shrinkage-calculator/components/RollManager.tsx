@@ -46,6 +46,7 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   const [deletedStack, setDeletedStack] = useState<Array<{ row: RollRow }>>([]);
   // Tabbed interface: 'measurements' | 'analytics'
   const [rollTab, setRollTab] = useState<'measurements' | 'analytics'>('measurements');
+  const [samplingCollapsed, setSamplingCollapsed] = useState(false);
 
 
   // Save modal states
@@ -264,6 +265,7 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   const handleApplySampling = useCallback(() => {
     const count = sampling.recommended;
     if (count <= 0) return;
+    setSamplingCollapsed(true);
     const newRows: RollRow[] = [];
     for (let i = 1; i <= count; i++) {
       newRows.push({ order: i, id: `R${i}`, bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' });
@@ -436,12 +438,37 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
 
       {/* ── PART 1: Raw Measurements (Sampling + Table + Actions) ── */}
       <div className={`rm-tab-panel${rollTab === 'measurements' ? ' rm-tab-active' : ''}`}>
-      {/* ── Sampling Calculator ─────────────────────────────────────────────── */}
+      {/* ── Sampling Calculator (collapsible) ─────────────────────────────── */}
       <div className="sampling-card">
-        <div className="sampling-header">
+        {/* Collapsed summary header — always visible */}
+        <button
+          type="button"
+          className="sampling-collapse-btn"
+          onClick={() => setSamplingCollapsed(v => !v)}
+          aria-expanded={!samplingCollapsed}
+        >
+          <div className="sampling-collapse-left">
+            <i className="fas fa-calculator" style={{ color: 'var(--primary)', fontSize: 14 }}></i>
+            {samplingCollapsed ? (
+              <span className="sampling-collapse-summary">
+                Sampling: <strong>{sampling.recommended} Rolls</strong>
+                <span className="sampling-collapse-std">
+                  {samplingStd === '10pct' ? 'Industry 10%' : samplingStd === 'sqrt' ? 'Strict QC' : '100% Testing'}
+                </span>
+              </span>
+            ) : (
+              <span className="sampling-collapse-title">Sampling Calculator</span>
+            )}
+          </div>
+          <i className={`fas fa-chevron-${samplingCollapsed ? 'down' : 'up'} sampling-collapse-icon`}></i>
+        </button>
+
+        {/* Expanded body */}
+        {!samplingCollapsed && (
+          <>
+        <div className="sampling-header" style={{ marginTop: 12 }}>
           <div>
-            <h3>Sampling Calculator</h3>
-            <p>Determine how many rolls to test based on total rolls, dye lots, and your QC standard.</p>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--text-light)' }}>Determine how many rolls to test based on total rolls, dye lots, and your QC standard.</p>
           </div>
           <span className="sampling-badge">Enhanced</span>
         </div>
@@ -505,6 +532,8 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
           <span className="pill">Rounded up</span>
           <span>Result is at least the number of dye lots. Caps at total rolls.</span>
         </div>
+          </>
+        )}
       </div>
 
       {/* ── Roll Measurements Table ─────────────────────────────────────────── */}
