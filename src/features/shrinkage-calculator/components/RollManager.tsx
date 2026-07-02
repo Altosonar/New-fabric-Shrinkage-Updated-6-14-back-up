@@ -413,7 +413,7 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
     <div className="card">
       <h2 style={{ marginBottom: '10px', color: 'var(--primary)' }}>Multi-Roll Shipment Manager</h2>
 
-      {/* ── Sticky Tab Navigation (mobile) ── */}
+      {/* ── Tab Navigation (Measurements | Roll Groups & Stats) ── */}
       <div className="rm-tab-bar">
         <button
           type="button"
