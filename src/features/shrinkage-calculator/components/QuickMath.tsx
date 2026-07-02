@@ -64,16 +64,16 @@ export function QuickMath() {
             className="pm-input qm-input-field qm-input-accent"
           />
         </div>
-        <div style={{ textAlign: 'center', marginTop: '40px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: 'bold', letterSpacing: '1px' }}>ANSWER</div>
-          <div style={{ fontSize: '52px', fontWeight: '900', color: 'var(--danger)', marginTop: '5px' }}>{qm2Ans}</div>
+        <div className="qm-answer" style={{ textAlign: 'center', marginTop: '40px' }}>
+          <div className="qm-answer-label" style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: 'bold', letterSpacing: '1px' }}>ANSWER</div>
+          <div className="qm-answer-value" style={{ fontSize: '52px', fontWeight: '900', color: 'var(--danger)', marginTop: '5px' }}>{qm2Ans}</div>
         </div>
         <div className="qm-visualizer-container">
           <div className="qm-visualizer-bar" style={{ width: qm2Bar }}>
             {parseFloat(qm2Bar) > 15 && <span>{qm2Ans}</span>}
           </div>
         </div>
-        <div style={{ marginTop: '15px' }}>
+        <div className="qm-clear-btn" style={{ marginTop: '15px' }}>
           <Button
             variant="outline"
             style={{ width: '100%' }}
@@ -105,16 +105,16 @@ export function QuickMath() {
             className="pm-input qm-input-field qm-input-accent"
           />
         </div>
-        <div style={{ textAlign: 'center', marginTop: '40px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: 'bold', letterSpacing: '1px' }}>ANSWER</div>
-          <div style={{ fontSize: '52px', fontWeight: '900', color: 'var(--danger)', marginTop: '5px' }}>{qm3Ans}</div>
+        <div className="qm-answer" style={{ textAlign: 'center', marginTop: '40px' }}>
+          <div className="qm-answer-label" style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: 'bold', letterSpacing: '1px' }}>ANSWER</div>
+          <div className="qm-answer-value" style={{ fontSize: '52px', fontWeight: '900', color: 'var(--danger)', marginTop: '5px' }}>{qm3Ans}</div>
         </div>
         <div className="qm-visualizer-container">
           <div className="qm-visualizer-bar" style={{ width: qm3Bar }}>
             {parseFloat(qm3Bar) > 15 && <span>{qm3X}%</span>}
           </div>
         </div>
-        <div style={{ marginTop: '15px' }}>
+        <div className="qm-clear-btn" style={{ marginTop: '15px' }}>
           <Button
             variant="outline"
             style={{ width: '100%' }}

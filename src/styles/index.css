@@ -3672,3 +3672,58 @@ body {
     font-size: 13px;
   }
 }
+
+/* ── QuickMath mobile compact layout ────────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+  /* Tighten card internals for QM cards */
+  .quick-math-grid .card {
+    padding: 12px 14px;
+  }
+  .quick-math-grid .card-title {
+    font-size: 13px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  /* Input row: less top space */
+  .quick-math-grid .qm-input-row {
+    margin-top: 10px;
+    gap: 8px;
+  }
+  .quick-math-grid .qm-input-field {
+    padding: 10px 8px;
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .quick-math-grid .qm-label {
+    font-size: 12px;
+  }
+
+  /* Answer section: shrink the giant number and its top gap */
+  .quick-math-grid .qm-answer {
+    margin-top: 14px !important;
+  }
+  .quick-math-grid .qm-answer-label {
+    font-size: 11px !important;
+  }
+  .quick-math-grid .qm-answer-value {
+    font-size: 36px !important;
+    margin-top: 2px !important;
+  }
+
+  /* Visualizer bar: shorter height, less top margin */
+  .quick-math-grid .qm-visualizer-container {
+    height: 36px;
+    margin-top: 12px;
+  }
+
+  /* Clear button: compact */
+  .quick-math-grid .qm-clear-btn {
+    margin-top: 10px !important;
+  }
+
+  /* Grid gap between the two cards */
+  .quick-math-grid {
+    gap: 10px;
+  }
+}
