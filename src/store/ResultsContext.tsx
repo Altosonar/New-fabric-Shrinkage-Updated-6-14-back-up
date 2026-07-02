@@ -34,7 +34,9 @@ type ResultsAction =
   | { type: 'CLEAR_SELECTION' }
   | { type: 'ASSIGN_RESULT_TAG'; payload: { resultId: number; tagId: string } }
   | { type: 'REMOVE_RESULT_TAG'; payload: { resultId: number; tagId: string } }
-  | { type: 'ASSIGN_RESULT_FOLDER'; payload: { resultId: number; folderId: string | undefined } };
+  | { type: 'ASSIGN_RESULT_FOLDER'; payload: { resultId: number; folderId: string | undefined } }
+  | { type: 'RENAME_FOLDER'; payload: { id: string; name: string } }
+  | { type: 'RENAME_TAG'; payload: { id: string; label: string } };
 
 // Initial state with default data
 const initialState: ResultsState = {
@@ -184,6 +186,20 @@ function resultsReducer(state: ResultsState, action: ResultsAction): ResultsStat
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
       return { ...state, results: newResults };
     }
+    case 'RENAME_FOLDER': {
+      const newFolders = state.folders.map(f =>
+        f.id === action.payload.id ? { ...f, name: action.payload.name } : f
+      );
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(newFolders));
+      return { ...state, folders: newFolders };
+    }
+    case 'RENAME_TAG': {
+      const newTags = state.tags.map(t =>
+        t.id === action.payload.id ? { ...t, label: action.payload.label } : t
+      );
+      localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+      return { ...state, tags: newTags };
+    }
 
     default:
       return state;
@@ -211,6 +227,8 @@ interface ResultsContextType {
   assignResultTag: (resultId: number, tagId: string) => void;
   removeResultTag: (resultId: number, tagId: string) => void;
   assignResultFolder: (resultId: number, folderId: string | undefined) => void;
+  renameFolder: (id: string, name: string) => void;
+  renameTag: (id: string, label: string) => void;
   // Selection helpers
   toggleSelect: (id: number) => void;
   selectAll: (ids: number[]) => void;
@@ -289,6 +307,8 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
   const assignResultTag = (resultId: number, tagId: string) => dispatch({ type: 'ASSIGN_RESULT_TAG', payload: { resultId, tagId } });
   const removeResultTag = (resultId: number, tagId: string) => dispatch({ type: 'REMOVE_RESULT_TAG', payload: { resultId, tagId } });
   const assignResultFolder = (resultId: number, folderId: string | undefined) => dispatch({ type: 'ASSIGN_RESULT_FOLDER', payload: { resultId, folderId } });
+  const renameFolder = (id: string, name: string) => dispatch({ type: 'RENAME_FOLDER', payload: { id, name } });
+  const renameTag = (id: string, label: string) => dispatch({ type: 'RENAME_TAG', payload: { id, label } });
 
   // Selection helpers
   const toggleSelect = (id: number) => dispatch({ type: 'TOGGLE_SELECT', payload: id });
@@ -341,6 +361,8 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
     assignResultTag,
     removeResultTag,
     assignResultFolder,
+    renameFolder,
+    renameTag,
     toggleSelect,
     selectAll,
     clearSelection,

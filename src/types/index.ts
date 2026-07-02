@@ -126,3 +126,22 @@ export type ViewType = 'calculator' | 'results';
 
 // Sort options
 export type SortOption = 'dateDesc' | 'dateAsc' | 'nameAsc' | 'shrinkDesc';
+
+// ── Settings ─────────────────────────────────────────────────────────────────
+export interface WashProfile {
+  id: string;
+  name: string;
+  defaultTemp: string;
+  defaultDuration: string;
+  isCustom: true;
+}
+
+export interface AppSettings {
+  measurementUnit: 'inches' | 'cm';
+  temperatureScale: 'fahrenheit' | 'celsius';
+  decimalPrecision: 1 | 2 | 3;
+  samplingPercent: number;
+  rollGroupSensitivity: number;
+  warningThreshold: number;
+  exportFormat: 'json' | 'csv';
+}

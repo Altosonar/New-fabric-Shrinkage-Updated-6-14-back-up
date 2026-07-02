@@ -1,5 +1,7 @@
 ﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useResults } from '../../../store/ResultsContext';
+import { useSettings } from '../../../hooks/useSettings';
+import { exportToCSV } from '../../../utils/exportUtils';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import {
@@ -502,11 +504,21 @@ export function ResultsPage() {
     return results;
   }, [state.results, searchTerm, sortBy, filterType, filterSeverity, filterDateRange, activeSection]);
 
+  const { settings } = useSettings();
+
   const handleExport = () => {
-    const blob = new Blob([exportResults()], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `shrinkage_${new Date().toISOString().slice(0, 10)}.json`; a.click();
-    URL.revokeObjectURL(url);
+    if (settings.exportFormat === 'csv') {
+      const csv = exportToCSV(state.results);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `shrinkage_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const blob = new Blob([exportResults()], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `shrinkage_${new Date().toISOString().slice(0, 10)}.json`; a.click();
+      URL.revokeObjectURL(url);
+    }
   };
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;

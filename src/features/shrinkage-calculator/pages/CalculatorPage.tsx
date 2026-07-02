@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useResults } from '../../../store/ResultsContext';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -16,6 +16,7 @@ import { ResultsPage } from '../../results/pages/ResultsPage';
 import { triggerSmartPrint } from '../../../utils/printReport';
 
 export function CalculatorPage() {
+  const navigate = useNavigate();
   const { state, addResult, updateResult, setEditingId } = useResults();
   const [calcMode, setCalcMode] = useState<CalcMode>('shrinkage');
   const [unit, setUnit] = useState<Unit>('inches');
@@ -447,6 +448,14 @@ export function CalculatorPage() {
           >
             <i className="fas fa-print"></i>
           </button>
+          <button
+            type="button"
+            className="sidebar-btn"
+            onClick={() => navigate('/settings')}
+            title="Settings"
+          >
+            <i className="fas fa-cog"></i>
+          </button>
         </nav>,
         sidebarPortalTarget
       )}
@@ -487,6 +496,14 @@ export function CalculatorPage() {
                 >
                   <i className="fas fa-print"></i>
                   <span>Print Report</span>
+                </button>
+                <button
+                  type="button"
+                  className="more-drawer-btn"
+                  onClick={() => { navigate('/settings'); setMoreOpen(false); }}
+                >
+                  <i className="fas fa-cog"></i>
+                  <span>Settings</span>
                 </button>
               </div>
             </>

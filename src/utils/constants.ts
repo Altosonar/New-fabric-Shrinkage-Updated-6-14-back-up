@@ -224,3 +224,18 @@ export const STORAGE_KEY = 'shrinkStudioResults';
 // Grouping threshold
 export const GROUP_THRESHOLD = 1.0;
 export const RECOMMENDATION_THRESHOLD = 1.5;
+
+// Settings storage keys
+export const SETTINGS_KEY = 'shrinkage_settings';
+export const WASH_PROFILES_KEY = 'shrinkage_wash_profiles';
+
+// Default app settings
+export const DEFAULT_SETTINGS = {
+  measurementUnit: 'inches' as const,
+  temperatureScale: 'fahrenheit' as const,
+  decimalPrecision: 1 as const,
+  samplingPercent: 10,
+  rollGroupSensitivity: 1.0,
+  warningThreshold: 3.0,
+  exportFormat: 'json' as const,
+};
