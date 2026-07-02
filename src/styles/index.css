@@ -1898,7 +1898,7 @@ body {
     padding: 12px 12px 0 12px;
     max-height: none;
     min-height: calc(100dvh - env(safe-area-inset-bottom, 0px));
-    padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
     overflow-x: hidden;
     width: 100%;
     box-sizing: border-box;
@@ -1962,6 +1962,7 @@ body {
     width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
     margin: 0 !important;
     min-height: unset !important;
   }
@@ -2777,7 +2778,7 @@ body {
   .res-filter-bar { gap: 6px; }
   .res-filter-select { font-size: 12px; padding: 7px 8px; }
   .res-grid { grid-template-columns: 1fr; }
-  .res-batch-bar { bottom: 80px; padding: 10px 14px; gap: 8px; }
+  .res-batch-bar { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); padding: 10px 14px; gap: 8px; }
   .res-batch-btn { font-size: 12px; padding: 6px 10px; }
 }
 
