@@ -281,11 +281,16 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
     const count = sampling.recommended;
     if (count <= 0) return;
     setSamplingCollapsed(true);
-    const newRows: RollRow[] = [];
-    for (let i = 1; i <= count; i++) {
-      newRows.push({ order: i, id: `R${i}`, bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' });
-    }
-    setRows(newRows);
+    // Preserve the current Before L / Before W so user doesn't have to retype
+    setRows(prev => {
+      const inheritBL = prev[0]?.bL ?? '';
+      const inheritBW = prev[0]?.bW ?? '';
+      const newRows: RollRow[] = [];
+      for (let i = 1; i <= count; i++) {
+        newRows.push({ order: i, id: `R${i}`, bL: inheritBL, bW: inheritBW, aL: '', aW: '', sL: '-', sW: '-', group: '' });
+      }
+      return newRows;
+    });
     nextOrderRef.current = count + 1;
     setDeletedStack([]);
     setGroupedRolls([]);
