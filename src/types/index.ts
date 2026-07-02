@@ -4,8 +4,28 @@ export type Unit = 'inches' | 'cm';
 // Record types
 export type RecordType = 'single' | 'group' | 'shipment' | 'sample';
 
+// ── Enterprise DB: Folder & Tag ──────────────────────────────────────────────
+export interface Folder {
+  id: string;
+  name: string;
+  color: string; // hex or CSS color
+}
+
+export interface Tag {
+  id: string;
+  label: string;
+  color: string;
+}
+
+// ── Base mixin added to every SavedResult ────────────────────────────────────
+export interface SavedResultMeta {
+  tags?: string[];       // array of Tag ids
+  folderId?: string;     // Folder id
+  notes?: string;
+}
+
 // Single shrinkage result
-export interface FabricResult {
+export interface FabricResult extends SavedResultMeta {
   id: number;
   type: string;
   name: string;
@@ -35,7 +55,7 @@ export interface Roll {
 }
 
 // Group of rolls
-export interface RollGroup {
+export interface RollGroup extends SavedResultMeta {
   id: number;
   recordType: 'group';
   name: string;
@@ -53,7 +73,7 @@ export interface ShipmentGroup {
   avgW: number;
 }
 
-export interface Shipment {
+export interface Shipment extends SavedResultMeta {
   id: number;
   recordType: 'shipment';
   name: string;
@@ -62,7 +82,7 @@ export interface Shipment {
 }
 
 // Sample test result
-export interface SampleTest {
+export interface SampleTest extends SavedResultMeta {
   id: number;
   recordType: 'sample';
   name: string;

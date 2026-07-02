@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { SavedResult, FabricResult, RollGroup, Shipment, SampleTest, Unit } from '../types';
+import { SavedResult, FabricResult, RollGroup, Shipment, SampleTest, Unit, Folder, Tag } from '../types';
 import { STORAGE_KEY } from '../utils/constants';
+
+const FOLDERS_KEY = 'shrinkage_folders';
+const TAGS_KEY = 'shrinkage_tags';
 
 // State interface
 interface ResultsState {
   results: SavedResult[];
   editingId: number | null;
   unit: Unit;
+  folders: Folder[];
+  tags: Tag[];
+  selectedIds: Set<number>;
 }
 
 // Action types
@@ -18,13 +24,26 @@ type ResultsAction =
   | { type: 'DELETE_ALL' }
   | { type: 'SET_EDITING_ID'; payload: number | null }
   | { type: 'SET_UNIT'; payload: Unit }
-  | { type: 'IMPORT_RESULTS'; payload: SavedResult[] };
+  | { type: 'IMPORT_RESULTS'; payload: SavedResult[] }
+  | { type: 'ADD_FOLDER'; payload: Folder }
+  | { type: 'DELETE_FOLDER'; payload: string }
+  | { type: 'ADD_TAG'; payload: Tag }
+  | { type: 'DELETE_TAG'; payload: string }
+  | { type: 'TOGGLE_SELECT'; payload: number }
+  | { type: 'SELECT_ALL'; payload: number[] }
+  | { type: 'CLEAR_SELECTION' }
+  | { type: 'ASSIGN_RESULT_TAG'; payload: { resultId: number; tagId: string } }
+  | { type: 'REMOVE_RESULT_TAG'; payload: { resultId: number; tagId: string } }
+  | { type: 'ASSIGN_RESULT_FOLDER'; payload: { resultId: number; folderId: string | undefined } };
 
 // Initial state with default data
 const initialState: ResultsState = {
   results: [],
   editingId: null,
-  unit: 'inches'
+  unit: 'inches',
+  folders: [],
+  tags: [],
+  selectedIds: new Set()
 };
 
 // Load initial results from localStorage
@@ -100,7 +119,72 @@ function resultsReducer(state: ResultsState, action: ResultsAction): ResultsStat
     case 'IMPORT_RESULTS':
       localStorage.setItem(STORAGE_KEY, JSON.stringify(action.payload));
       return { ...state, results: action.payload };
-      
+
+    case 'ADD_FOLDER': {
+      const newFolders = [...state.folders, action.payload];
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(newFolders));
+      return { ...state, folders: newFolders };
+    }
+    case 'DELETE_FOLDER': {
+      const newFolders = state.folders.filter(f => f.id !== action.payload);
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(newFolders));
+      const newResults = state.results.map(r =>
+        r.folderId === action.payload ? { ...r, folderId: undefined } : r
+      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
+      return { ...state, folders: newFolders, results: newResults };
+    }
+    case 'ADD_TAG': {
+      const newTags = [...state.tags, action.payload];
+      localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+      return { ...state, tags: newTags };
+    }
+    case 'DELETE_TAG': {
+      const newTags = state.tags.filter(t => t.id !== action.payload);
+      localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+      const newResults = state.results.map(r => ({
+        ...r,
+        tags: (r.tags || []).filter((tid: string) => tid !== action.payload)
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
+      return { ...state, tags: newTags, results: newResults };
+    }
+    case 'TOGGLE_SELECT': {
+      const next = new Set(state.selectedIds);
+      if (next.has(action.payload)) next.delete(action.payload);
+      else next.add(action.payload);
+      return { ...state, selectedIds: next };
+    }
+    case 'SELECT_ALL':
+      return { ...state, selectedIds: new Set(action.payload) };
+    case 'CLEAR_SELECTION':
+      return { ...state, selectedIds: new Set() };
+    case 'ASSIGN_RESULT_TAG': {
+      const newResults = state.results.map(r => {
+        if (r.id !== action.payload.resultId) return r;
+        const existing = r.tags || [];
+        if (existing.includes(action.payload.tagId)) return r;
+        return { ...r, tags: [...existing, action.payload.tagId] };
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
+      return { ...state, results: newResults };
+    }
+    case 'REMOVE_RESULT_TAG': {
+      const newResults = state.results.map(r => {
+        if (r.id !== action.payload.resultId) return r;
+        return { ...r, tags: (r.tags || []).filter((t: string) => t !== action.payload.tagId) };
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
+      return { ...state, results: newResults };
+    }
+    case 'ASSIGN_RESULT_FOLDER': {
+      const newResults = state.results.map(r =>
+        r.id === action.payload.resultId ? { ...r, folderId: action.payload.folderId } : r
+      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
+      return { ...state, results: newResults };
+    }
+
     default:
       return state;
   }
@@ -119,6 +203,20 @@ interface ResultsContextType {
   exportResults: () => string;
   setEditingId: (id: number | null) => void;
   setUnit: (unit: Unit) => void;
+  // Folder & Tag helpers
+  addFolder: (folder: Folder) => void;
+  deleteFolder: (id: string) => void;
+  addTag: (tag: Tag) => void;
+  deleteTag: (id: string) => void;
+  assignResultTag: (resultId: number, tagId: string) => void;
+  removeResultTag: (resultId: number, tagId: string) => void;
+  assignResultFolder: (resultId: number, folderId: string | undefined) => void;
+  // Selection helpers
+  toggleSelect: (id: number) => void;
+  selectAll: (ids: number[]) => void;
+  clearSelection: () => void;
+  bulkDelete: () => void;
+  bulkExport: (ids: number[]) => string;
   // Type guards
   isFabricResult: (result: SavedResult) => result is FabricResult;
   isRollGroup: (result: SavedResult) => result is RollGroup;
@@ -137,7 +235,13 @@ interface ResultsProviderProps {
 export function ResultsProvider({ children }: ResultsProviderProps) {
   const [state, dispatch] = useReducer(resultsReducer, {
     ...initialState,
-    results: loadInitialResults()
+    results: loadInitialResults(),
+    folders: (() => {
+      try { const s = localStorage.getItem(FOLDERS_KEY); return s ? JSON.parse(s) : []; } catch { return []; }
+    })(),
+    tags: (() => {
+      try { const s = localStorage.getItem(TAGS_KEY); return s ? JSON.parse(s) : []; } catch { return []; }
+    })(),
   });
 
   // Helper functions
@@ -177,6 +281,31 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
     dispatch({ type: 'SET_UNIT', payload: unit });
   };
 
+  // Folder & Tag helpers
+  const addFolder = (folder: Folder) => dispatch({ type: 'ADD_FOLDER', payload: folder });
+  const deleteFolder = (id: string) => dispatch({ type: 'DELETE_FOLDER', payload: id });
+  const addTag = (tag: Tag) => dispatch({ type: 'ADD_TAG', payload: tag });
+  const deleteTag = (id: string) => dispatch({ type: 'DELETE_TAG', payload: id });
+  const assignResultTag = (resultId: number, tagId: string) => dispatch({ type: 'ASSIGN_RESULT_TAG', payload: { resultId, tagId } });
+  const removeResultTag = (resultId: number, tagId: string) => dispatch({ type: 'REMOVE_RESULT_TAG', payload: { resultId, tagId } });
+  const assignResultFolder = (resultId: number, folderId: string | undefined) => dispatch({ type: 'ASSIGN_RESULT_FOLDER', payload: { resultId, folderId } });
+
+  // Selection helpers
+  const toggleSelect = (id: number) => dispatch({ type: 'TOGGLE_SELECT', payload: id });
+  const selectAll = (ids: number[]) => dispatch({ type: 'SELECT_ALL', payload: ids });
+  const clearSelection = () => dispatch({ type: 'CLEAR_SELECTION' });
+  const bulkDelete = () => {
+    if (state.selectedIds.size === 0) return;
+    if (confirm(`Delete ${state.selectedIds.size} selected result(s)? This cannot be undone.`)) {
+      state.selectedIds.forEach(id => dispatch({ type: 'DELETE_RESULT', payload: id }));
+      dispatch({ type: 'CLEAR_SELECTION' });
+    }
+  };
+  const bulkExport = (ids: number[]): string => {
+    const selected = state.results.filter(r => ids.includes(r.id));
+    return JSON.stringify(selected, null, 2);
+  };
+
   // Type guards
   const isFabricResult = (result: SavedResult): result is FabricResult => {
     return result.recordType === 'single';
@@ -205,6 +334,18 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
     exportResults,
     setEditingId,
     setUnit,
+    addFolder,
+    deleteFolder,
+    addTag,
+    deleteTag,
+    assignResultTag,
+    removeResultTag,
+    assignResultFolder,
+    toggleSelect,
+    selectAll,
+    clearSelection,
+    bulkDelete,
+    bulkExport,
     isFabricResult,
     isRollGroup,
     isShipment,

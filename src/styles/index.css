@@ -2333,3 +2333,431 @@ body {
   display: block;
   animation: fadeIn 0.22s ease;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   ENTERPRISE RESULTS DATABASE  — res-* classes
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Type badges ─────────────────────────────────────────────────────────────── */
+.res-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.badge-basic    { background: #e3f2fd; color: #1565c0; }
+.badge-sample   { background: #f3e5f5; color: #6a1b9a; }
+.badge-rollqc   { background: #e0f2f1; color: #00695c; }
+.badge-shipment { background: #e8f5e9; color: #2e7d32; }
+
+/* ── Variation / status pills ───────────────────────────────────────────────── */
+.res-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.res-status-pass     { background: #dcfce7; color: #15803d; }
+.res-status-moderate { background: #fef3c7; color: #92400e; }
+.res-status-high     { background: #fee2e2; color: #991b1b; }
+
+/* ── Layout ────────────────────────────────────────────────────────────────── */
+.res-layout {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+.res-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-color);
+  padding-right: 12px;
+  margin-right: 16px;
+}
+.res-sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.res-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+  color: var(--text-main);
+}
+.res-sidebar-item:hover  { background: var(--secondary); }
+.res-sidebar-item.active { background: var(--primary); color: #fff; }
+.res-sidebar-item.active .res-sidebar-count { background: rgba(255,255,255,0.3); color: #fff; }
+.res-sidebar-count {
+  margin-left: auto;
+  background: var(--secondary);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.res-main { flex: 1; min-width: 0; }
+
+/* ── Filter bar ─────────────────────────────────────────────────────────────── */
+.res-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.res-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+}
+.res-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 13px;
+  pointer-events: none;
+}
+.res-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 36px 9px 34px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--card-bg, #fff);
+  color: var(--text-main);
+}
+.res-search-input:focus { outline: none; border-color: var(--primary); }
+.res-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-light);
+  font-size: 12px;
+  padding: 0;
+}
+.res-filter-select {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--card-bg, #fff);
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+/* ── Select row ─────────────────────────────────────────────────────────────── */
+.res-select-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 4px 2px;
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────────────── */
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────────── */
+.res-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-light);
+}
+
+/* ── Result card ─────────────────────────────────────────────────────────────── */
+.res-card {
+  background: var(--card-bg, #fff);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+}
+.res-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.res-card-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 37,99,235),0.18);
+}
+.res-card-check {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 2;
+}
+.res-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-left: 22px;
+}
+.res-card-delete {
+  margin-left: auto;
+  cursor: pointer;
+  color: var(--text-light);
+  font-size: 13px;
+  transition: color 0.15s;
+}
+.res-card-delete:hover { color: var(--danger); }
+.res-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.res-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-light);
+}
+.res-card-meta i { margin-right: 4px; }
+
+/* ── Shrink row ──────────────────────────────────────────────────────────────── */
+.res-shrink-row {
+  display: flex;
+  align-items: center;
+  background: var(--secondary, #f8f9fa);
+  border-radius: 8px;
+  padding: 8px 12px;
+  gap: 0;
+}
+.res-shrink-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.res-shrink-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-light);
+}
+.res-shrink-val {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+}
+.res-shrink-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border-color);
+  margin: 0 10px;
+  flex-shrink: 0;
+}
+
+/* ── Cut dims ────────────────────────────────────────────────────────────────── */
+.res-cut-dims {
+  font-size: 12px;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 6px;
+  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Tags & folder chips ─────────────────────────────────────────────────────── */
+.res-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.res-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: default;
+}
+.res-folder-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ── Card action row ─────────────────────────────────────────────────────────── */
+.res-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 2px;
+  position: relative;
+}
+.res-action-btn {
+  background: var(--secondary, #f8f9fa);
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.res-action-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ── Dropdown ────────────────────────────────────────────────────────────────── */
+.res-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  z-index: 200;
+  min-width: 170px;
+  overflow: hidden;
+}
+.res-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.res-dropdown-item:hover { background: var(--secondary, #f0f4ff); }
+
+/* ── Batch action bar ────────────────────────────────────────────────────────── */
+.res-batch-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 500;
+  flex-wrap: wrap;
+  max-width: 90vw;
+}
+.res-batch-count {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.res-batch-btn {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.res-batch-btn:hover    { background: rgba(255,255,255,0.22); }
+.res-batch-danger:hover { background: rgba(220,38,38,0.75); }
+.res-batch-clear        { background: transparent; border-color: rgba(255,255,255,0.15); }
+
+/* ── Full report meta ────────────────────────────────────────────────────────── */
+.res-report-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+/* ── Mobile responsive ───────────────────────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+  .res-layout { flex-direction: column; }
+  .res-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding-right: 0;
+    margin-right: 0;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    overflow-x: auto;
+  }
+  .res-sidebar-title { display: none; }
+  .res-sidebar-item {
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 5px 10px;
+    white-space: nowrap;
+  }
+  .res-filter-bar { gap: 6px; }
+  .res-filter-select { font-size: 12px; padding: 7px 8px; }
+  .res-grid { grid-template-columns: 1fr; }
+  .res-batch-bar { bottom: 80px; padding: 10px 14px; gap: 8px; }
+  .res-batch-btn { font-size: 12px; padding: 6px 10px; }
+}
