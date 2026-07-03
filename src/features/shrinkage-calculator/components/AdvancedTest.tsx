@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
+import { FabricWashSpecsPanel, FabricWashSpecsPanelHandle } from '../../../components/ui/FabricWashSpecsPanel';
 import { useResults } from '../../../store/ResultsContext';
 import { useDialog } from '../../../components/ui/DialogProvider';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
@@ -9,6 +10,8 @@ import { calculateShrinkage, calculateAverage, calculateCutSize } from '../../..
 interface AdvancedTestProps {
   unit: string;
   onTransferToMain: (avgL: number, avgW: number) => void;
+  editingId?: number | null;
+  onCancelEdit?: () => void;
 }
 
 interface RowData {
@@ -28,9 +31,11 @@ const defaultRows: RowData[] = [
   makeBlankRow(),
 ];
 
-export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
-  const { addResult } = useResults();
+export function AdvancedTest({ unit, onTransferToMain, editingId, onCancelEdit }: AdvancedTestProps) {
+  const { addResult, updateResult } = useResults();
   const { showAlert, showConfirm } = useDialog();
+  // Ref to read fabric/wash spec values when saving
+  const specsRef = useRef<FabricWashSpecsPanelHandle>(null);
   const [rows, setRows] = useLocalStorage<RowData[]>('advancedTestRows_v3', defaultRows);
   // Undo stack: stores deleted rows so the last one can be restored
   const [deletedStack, setDeletedStack] = useState<RowData[]>([]);
@@ -191,6 +196,28 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
     setDeletedStack(prev => prev.slice(0, -1));
   };
 
+  // ── Edit sample from Results Library ────────────────────────────────────────
+  useEffect(() => {
+    const onEdit = (e: Event) => {
+      const res = (e as CustomEvent).detail as import('../../../types').SampleTest;
+      if (!res || res.recordType !== 'sample') return;
+      // Rebuild rows from saved samples
+      const loadedRows = (res.samples || []).map(s => ({
+        bL: String(s.bL ?? ''), bW: String(s.bW ?? ''),
+        aL: String(s.aL ?? ''), aW: String(s.aW ?? ''),
+        sL: s.sL || '-', sW: s.sW || '-',
+      }));
+      setRows(loadedRows.length >= 2 ? loadedRows : [...loadedRows, makeBlankRow(), makeBlankRow()].slice(0, Math.max(loadedRows.length, 2)));
+      setSampleName(res.name || '');
+      setDesiredL(res.desiredL != null ? String(res.desiredL) : '');
+      setDesiredW(res.desiredW != null ? String(res.desiredW) : '');
+      setPatternApplied(false);
+      setAdvPart('data');
+    };
+    window.addEventListener('edit-sample', onEdit as EventListener);
+    return () => window.removeEventListener('edit-sample', onEdit as EventListener);
+  }, []);
+
   const handleClearAll = () => {
     showConfirm('Are you sure you want to clear all sample data?').then(ok => {
       if (ok) {
@@ -230,7 +257,8 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   };
 
   const handleSave = () => {
-    if (!sampleName) {
+    // In edit mode the name is already loaded; only require it for new saves
+    if (!editingId && !sampleName) {
       showAlert('Please enter a sample name.');
       return;
     }
@@ -247,8 +275,10 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
         sW: r.sW,
       }));
 
-    addResult({
-      id: Date.now(),
+    const spec = specsRef.current?.getSpec();
+
+    const payload = {
+      id: editingId || Date.now(),
       recordType: 'sample' as const,
       name: sampleName,
       samples: validSamples,
@@ -259,10 +289,25 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
       desiredL: desiredL ? parseFloat(desiredL) : null,
       desiredW: desiredW ? parseFloat(desiredW) : null,
       date: new Date().toLocaleDateString(),
-    });
+      fabricType: spec ? (spec.fabricType === 'Other' ? (spec.fabricTypeCustom || 'Other') : spec.fabricType) : undefined,
+      fabricName: spec?.fabricName || undefined,
+      wash: spec ? (spec.wash === 'Other' ? (spec.washCustom || 'Custom') : spec.wash) || undefined : undefined,
+      temp: spec?.temp || undefined,
+      duration: spec?.duration || undefined,
+      drying: spec?.drying || undefined,
+    };
 
-    setSaveModalOpen(false);
-    setSampleName('');
+    if (editingId) {
+      updateResult(payload as any);
+      setSaveModalOpen(false);
+      setSampleName('');
+      sessionStorage.setItem('pendingUpdateToast', sampleName || 'record');
+      onCancelEdit?.();   // return to Results page after update
+    } else {
+      addResult(payload as any);
+      setSaveModalOpen(false);
+      setSampleName('');
+    }
   };
 
   // ── Formatters ───────────────────────────────────────────────────────────────
@@ -280,9 +325,22 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
 
   return (
     <div className="card">
+      {editingId && (
+        <div className="edit-mode-banner">
+          <i className="fas fa-pencil-alt"></i>
+          <span>Edit Mode — changes will update the saved record</span>
+          <button className="edit-mode-cancel" onClick={onCancelEdit}>
+            <i className="fas fa-times"></i> Cancel &amp; Back to Results
+          </button>
+        </div>
+      )}
       <h2 style={{ marginBottom: '10px', color: 'var(--primary)', fontSize: '20px' }}>
         Advanced Multi-Sample Average Test
       </h2>
+
+      {/* ── Fabric & Wash Specifications ──────────────────────────────────── */}
+      <FabricWashSpecsPanel ref={specsRef} storagePrefix="advtest" />
+
       <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '16px' }}>
         Enter samples to calculate true average shrinkage.{' '}
         <em>Use the defaults bar below to fill Before columns across all rows at once.</em>
@@ -436,18 +494,29 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
           <Button variant="danger" className="clear-all-btn" icon={<i className="fas fa-trash-alt"></i>} onClick={handleClearAll}>Clear All</Button>
           <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={handleRestoreLast} disabled={deletedStack.length === 0}>Restore Last</Button>
         </div>
-        {/* Row 2: add + navigate */}
+        {/* Row 2: add + save/navigate */}
         <div className="roll-action-row">
           <button className="adv-add-row-btn" style={{ margin: 0, flex: 1 }} onClick={handleAddRow}>
             <i className="fas fa-plus"></i> Add Sample
           </button>
-          <button
-            className="adv-next-part-btn"
-            style={{ flex: 1, margin: 0 }}
-            onClick={() => setAdvPart('insights')}
-          >
-            <i className="fas fa-arrow-right"></i> Apply to Pattern
-          </button>
+          {editingId ? (
+            <Button
+              variant="success"
+              style={{ flex: 1, minHeight: 52, fontSize: 15 }}
+              icon={<i className="fas fa-save"></i>}
+              onClick={handleSave}
+            >
+              Update Record
+            </Button>
+          ) : (
+            <button
+              className="adv-next-part-btn"
+              style={{ flex: 1, margin: 0 }}
+              onClick={() => setAdvPart('insights')}
+            >
+              <i className="fas fa-arrow-right"></i> Apply to Pattern
+            </button>
+          )}
         </div>
       </div>
       </div>{/* end adv-two-part data */}

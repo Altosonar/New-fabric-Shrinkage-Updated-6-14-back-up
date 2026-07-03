@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
+import { FabricWashSpecsPanel, FabricWashSpecsPanelHandle } from '../../../components/ui/FabricWashSpecsPanel';
 import { useResults } from '../../../store/ResultsContext';
 import { useDialog } from '../../../components/ui/DialogProvider';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
@@ -11,6 +12,8 @@ import { Roll, RollGroup } from '../../../types';
 interface RollManagerProps {
   unit: string;
   onTransferToMain: (avgL: number, avgW: number) => void;
+  editingId?: number | null;
+  onCancelEdit?: () => void;
 }
 
 interface RollRow {
@@ -33,10 +36,12 @@ const defaultRows: RollRow[] = [
   { order: 5, id: 'R5', bL: '', bW: '', aL: '', aW: '', sL: '-', sW: '-', group: '' },
 ];
 
-export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
-  const { addResult } = useResults();
+export function RollManager({ unit, onTransferToMain, editingId, onCancelEdit }: RollManagerProps) {
+  const { addResult, updateResult } = useResults();
   const { showAlert, showConfirm } = useDialog();
   const nextOrderRef = useRef(6);
+  // Ref to read fabric/wash spec values when saving
+  const specsRef = useRef<FabricWashSpecsPanelHandle>(null);
   const lastClearTokenRef = useRef<string | null>(null);
   const [rows, setRows] = useLocalStorage<RollRow[]>('rollManagerRows_v3', defaultRows);
   // "Set Defaults" bar state — used in the bar above the table
@@ -346,6 +351,53 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
     return () => window.removeEventListener('clear-all', onClear as EventListener);
   }, [handleReset]);
 
+  // ── Edit RollGroup / Shipment from Results Library ────────────────────────────
+  useEffect(() => {
+    const onEditGroup = (e: Event) => {
+      const res = (e as CustomEvent).detail as import('../../../types').RollGroup;
+      if (!res || res.recordType !== 'group') return;
+      // Rebuild rows from saved rolls
+      const loadedRows: RollRow[] = (res.rolls || []).map((r, i) => ({
+        order: i + 1, id: r.id || `R${i + 1}`,
+        bL: r.bL != null ? String(r.bL) : '', bW: r.bW != null ? String(r.bW) : '',
+        aL: r.aL != null ? String(r.aL) : '', aW: r.aW != null ? String(r.aW) : '',
+        sL: r.sL != null ? r.sL.toFixed(1) + '%' : '-',
+        sW: r.sW != null ? r.sW.toFixed(1) + '%' : '-',
+        group: '',
+      }));
+      setRows(loadedRows.length > 0 ? loadedRows : defaultRows);
+      nextOrderRef.current = loadedRows.length + 1;
+      setGroupName(res.name || '');
+      setDeletedStack([]);
+      setRollTab('measurements');
+    };
+    const onEditShipment = (e: Event) => {
+      const res = (e as CustomEvent).detail as import('../../../types').Shipment;
+      if (!res || res.recordType !== 'shipment') return;
+      // Flatten all rolls from all groups into the measurement table
+      const allRolls = (res.groups || []).flatMap(g => g.rolls || []);
+      const loadedRows: RollRow[] = allRolls.map((r, i) => ({
+        order: i + 1, id: r.id || `R${i + 1}`,
+        bL: r.bL != null ? String(r.bL) : '', bW: r.bW != null ? String(r.bW) : '',
+        aL: r.aL != null ? String(r.aL) : '', aW: r.aW != null ? String(r.aW) : '',
+        sL: r.sL != null ? r.sL.toFixed(1) + '%' : '-',
+        sW: r.sW != null ? r.sW.toFixed(1) + '%' : '-',
+        group: '',
+      }));
+      setRows(loadedRows.length > 0 ? loadedRows : defaultRows);
+      nextOrderRef.current = loadedRows.length + 1;
+      setShipmentName(res.name || '');
+      setDeletedStack([]);
+      setRollTab('measurements');
+    };
+    window.addEventListener('edit-rollgroup', onEditGroup as EventListener);
+    window.addEventListener('edit-shipment', onEditShipment as EventListener);
+    return () => {
+      window.removeEventListener('edit-rollgroup', onEditGroup as EventListener);
+      window.removeEventListener('edit-shipment', onEditShipment as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     try {
       const token = localStorage.getItem('clear-all-token');
@@ -367,7 +419,8 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   };
 
   const handleSaveGroup = () => {
-    if (!groupName) { showAlert('Please enter a group name.'); return; }
+    // In edit mode the name is already loaded; only require it for new saves
+    if (!editingId && !groupName) { showAlert('Please enter a group name.'); return; }
     const rolls: Roll[] = rows
       .filter(r => r.id && r.bL && r.bW && r.aL && r.aW)
       .map(r => ({
@@ -377,14 +430,26 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
         sL: r.sL !== '-' ? parseFloat(r.sL.replace('%', '')) : null,
         sW: r.sW !== '-' ? parseFloat(r.sW.replace('%', '')) : null
       }));
+    const spec = specsRef.current?.getSpec();
     const group: RollGroup = {
-      id: Date.now(), recordType: 'group', name: groupName,
+      id: editingId || Date.now(), recordType: 'group', name: groupName,
       rolls, avgL: stats.avgL, avgW: stats.avgW,
-      date: new Date().toLocaleDateString()
+      date: new Date().toLocaleDateString(),
+      // Fabric & wash context from the specifications panel
+      fabricType: spec ? (spec.fabricType === 'Other' ? (spec.fabricTypeCustom || 'Other') : spec.fabricType) : undefined,
+      fabricName: spec?.fabricName || undefined,
+      wash: spec ? (spec.wash === 'Other' ? (spec.washCustom || 'Custom') : spec.wash) || undefined : undefined,
+      temp: spec?.temp || undefined,
+      duration: spec?.duration || undefined,
+      drying: spec?.drying || undefined,
     };
-    addResult(group);
+    if (editingId) { updateResult(group as any); } else { addResult(group); }
     setSaveGroupModalOpen(false);
     setGroupName('');
+    if (editingId) {
+      sessionStorage.setItem('pendingUpdateToast', groupName);
+      onCancelEdit?.();
+    }
   };
 
   // ── Save Shipment ────────────────────────────────────────────────────────────
@@ -397,15 +462,26 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   };
 
   const handleSaveShipment = () => {
-    if (!shipmentName) { showAlert('Please enter a shipment name.'); return; }
+    if (!editingId && !shipmentName) { showAlert('Please enter a shipment name.'); return; }
+    const spec = specsRef.current?.getSpec();
     const shipment = {
-      id: Date.now(), recordType: 'shipment' as const, name: shipmentName,
+      id: editingId || Date.now(), recordType: 'shipment' as const, name: shipmentName,
       groups: groupedRolls.map(g => ({ letter: g.letter, rolls: g.rolls, avgL: g.avgL, avgW: g.avgW })),
-      date: new Date().toLocaleDateString()
+      date: new Date().toLocaleDateString(),
+      fabricType: spec ? (spec.fabricType === 'Other' ? (spec.fabricTypeCustom || 'Other') : spec.fabricType) : undefined,
+      fabricName: spec?.fabricName || undefined,
+      wash: spec ? (spec.wash === 'Other' ? (spec.washCustom || 'Custom') : spec.wash) || undefined : undefined,
+      temp: spec?.temp || undefined,
+      duration: spec?.duration || undefined,
+      drying: spec?.drying || undefined,
     };
-    addResult(shipment);
+    if (editingId) { updateResult(shipment as any); } else { addResult(shipment); }
     setSaveShipmentModalOpen(false);
     setShipmentName('');
+    if (editingId) {
+      sessionStorage.setItem('pendingUpdateToast', shipmentName);
+      onCancelEdit?.();
+    }
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -446,7 +522,19 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
 
   return (
     <div className="card">
+      {editingId && (
+        <div className="edit-mode-banner">
+          <i className="fas fa-pencil-alt"></i>
+          <span>Edit Mode — changes will update the saved record</span>
+          <button className="edit-mode-cancel" onClick={onCancelEdit}>
+            <i className="fas fa-times"></i> Cancel &amp; Back to Results
+          </button>
+        </div>
+      )}
       <h2 style={{ marginBottom: '10px', color: 'var(--primary)' }}>Multi-Roll Shipment Manager</h2>
+
+      {/* ── Fabric & Wash Specifications ──────────────────────────────────── */}
+      <FabricWashSpecsPanel ref={specsRef} storagePrefix="rollmgr" />
 
       {/* ── Tab Navigation (Measurements | Roll Groups & Stats) ── */}
       <div className="rm-tab-bar">
@@ -752,10 +840,24 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
       <div className="roll-group-actions">
         <div className="roll-action-row">
           <Button variant="danger" className="clear-all-btn" icon={<i className="fas fa-trash-alt"></i>} onClick={handleClearAll}>Clear All</Button>
-          <Button variant="success" className="save-group-btn" icon={<i className="fas fa-save"></i>} onClick={openSaveGroupModal}>Group to Library</Button>
+          <Button
+            variant="success"
+            className="save-group-btn"
+            icon={<i className="fas fa-save"></i>}
+            onClick={editingId ? handleSaveGroup : openSaveGroupModal}
+          >
+            {editingId ? 'Update Group' : 'Group to Library'}
+          </Button>
         </div>
         <div className="roll-action-row">
-          <Button variant="success" className="save-shipment-btn" icon={<i className="fas fa-save"></i>} onClick={openSaveShipmentModal}>Shipment Lot</Button>
+          <Button
+            variant="success"
+            className="save-shipment-btn"
+            icon={<i className="fas fa-save"></i>}
+            onClick={editingId ? handleSaveShipment : openSaveShipmentModal}
+          >
+            {editingId ? 'Update Shipment' : 'Shipment Lot'}
+          </Button>
           <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={handleRestoreLast} disabled={deletedStack.length === 0}>Restore Last</Button>
         </div>
         <Button variant="primary" className="roll-add-btn" icon={<i className="fas fa-plus"></i>} onClick={handleAddRow}>+ Add Roll</Button>

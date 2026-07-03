@@ -50,13 +50,15 @@ body {
   align-items: center;
   height: 100vh;
   overflow: hidden;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .app-container {
   display: flex;
   flex-direction: row;         /* sidebar left + body right */
   width: 100vw;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   height: 90vh;
   background: var(--bg-color);
@@ -411,7 +413,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
-  padding: 30px;
+  padding: 28px 30px;
   position: relative;
   width: 100%;
   min-height: 0;
@@ -573,8 +575,8 @@ body {
 .calc-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  align-items: start;
+  gap: 24px;
+  align-items: start;   /* each card sizes to its own content independently */
   width: 100%;
 }
 
@@ -787,14 +789,16 @@ body {
 .visualizer-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 15px;
   width: 100%;
 }
 
 .preview-box {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;   /* always a true square */
+  height: auto;
   background: #f5f7fa;
   position: relative;
   border: none;
@@ -4114,20 +4118,20 @@ body {
 
 /* ── Outer accordion shell ───────────────────────────────────────────────────── */
 .fws-accordion {
-  border: 1.5px solid #bbdefb;
-  border-radius: 10px;
+  border: 2px solid #bbdefb;
+  border-radius: 12px;
   background: #f8fbff;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   overflow: hidden;
 }
 
-/* ── Toggle button (always visible header) ───────────────────────────────────── */
+/* ── Toggle button ───────────────────────────────────────────────────────────── */
 .fws-toggle {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 14px;
+  gap: 10px;
+  padding: 14px 18px;
   background: none;
   border: none;
   cursor: pointer;
@@ -4140,15 +4144,15 @@ body {
 .fws-toggle-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 .fws-icon {
   color: var(--primary);
-  font-size: 14px;
+  font-size: 17px;
 }
 .fws-title {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--primary);
   white-space: nowrap;
@@ -4157,173 +4161,199 @@ body {
 /* ── Inline summary (shown when collapsed) ───────────────────────────────────── */
 .fws-summary {
   flex: 1;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-light);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin: 0 8px;
+  margin: 0 10px;
+  font-style: italic;
+}
+.fws-summary-empty {
+  color: #90caf9;
   font-style: italic;
 }
 
 .fws-chevron {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-light);
   margin-left: auto;
 }
 
 /* ── Expanded body ───────────────────────────────────────────────────────────── */
 .fws-body {
-  padding: 0 14px 14px;
-  border-top: 1px solid #bbdefb;
+  padding: 0 18px 18px;
+  border-top: 1.5px solid #bbdefb;
 }
 
 /* ── Step sections ───────────────────────────────────────────────────────────── */
 .fws-step {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 .fws-step-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.7px;
   color: var(--text-light);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .fws-step-num {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--primary);
   color: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
-/* ── Field grid inside steps ─────────────────────────────────────────────────── */
+/* ── Field grids ─────────────────────────────────────────────────────────────── */
 .fws-fields {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   grid-template-columns: 1fr 1fr;
 }
 .fws-wash-row {
   grid-template-columns: 2fr 1fr 1fr 1fr;
 }
-.fws-wash-process {
-  grid-column: span 1;
-}
+.fws-wash-process { grid-column: span 1; }
+.fws-fabric-row   { grid-template-columns: 1fr 1fr; }
 
-/* Keep input-group margin tight inside accordion */
+/* ── Inputs & labels inside accordion ───────────────────────────────────────── */
 .fws-body .input-group {
   margin-bottom: 0;
 }
+.fws-body .input-group label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  display: block;
+}
 .fws-body .input-group input,
 .fws-body .input-group select {
-  font-size: 13px;
-  padding: 8px 10px;
-  min-height: 38px;
-}
-.fws-body .input-group label {
-  font-size: 11px;
-  margin-bottom: 4px;
+  font-size: 15px;
+  padding: 10px 12px;
+  min-height: 44px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-/* ── Standard badge inside labels ────────────────────────────────────────────── */
+/* ── Standard badge ──────────────────────────────────────────────────────────── */
 .fws-std-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   background: linear-gradient(135deg, #1565c0, #1976d2);
   color: #fff;
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: 10px;
   letter-spacing: 0.3px;
   white-space: nowrap;
-  margin-left: 6px;
+  margin-left: 7px;
   vertical-align: middle;
 }
 
-/* ── Auto-Fill button inside step label ──────────────────────────────────────── */
+/* ── Auto-Fill button ────────────────────────────────────────────────────────── */
 .fws-autofill {
   margin-left: auto !important;
-  font-size: 11px !important;
-  padding: 3px 10px !important;
-  border-radius: 6px !important;
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  border-radius: 7px !important;
   min-height: unset !important;
 }
 
 /* ── Wash tip ────────────────────────────────────────────────────────────────── */
 .fws-tip {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: flex-start;
-  margin-top: 8px;
-  padding: 8px 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
   background: #fff3e0;
   border-left: 3px solid #ff9800;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 13px;
   color: #e65100;
-  line-height: 1.4;
+  line-height: 1.5;
 }
-.fws-tip i { flex-shrink: 0; margin-top: 1px; }
+.fws-tip i { flex-shrink: 0; margin-top: 2px; font-size: 14px; }
 
-/* ── "Done" collapse button ──────────────────────────────────────────────────── */
+/* ── Collapse button ─────────────────────────────────────────────────────────── */
 .fws-collapse-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 14px;
-  padding: 7px 14px;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 18px;
   background: var(--primary);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 12px;
+  border-radius: 9px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
   font-family: inherit;
+  min-height: 44px;
 }
 .fws-collapse-btn:hover { background: var(--primary-dark); }
 
-/* ── Step 3 header row (measurement heading + unit selector) ─────────────────── */
+/* ── Step 3 header ───────────────────────────────────────────────────────────── */
 .fws-step3-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
-  margin-bottom: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
   border-bottom: 2px solid var(--info-light);
 }
 .fws-step3-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 10px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-main);
 }
 
-/* ── Mobile responsive ───────────────────────────────────────────────────────── */
+/* ── Tablet & small desktop — keep 2-col wash row ───────────────────────────── */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+  .fws-wash-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Mobile  ─────────────────────────────────────────────────────────────────── */
 @media screen and (max-width: 768px) {
+  .fws-accordion { margin-bottom: 16px; border-radius: 10px; }
+  .fws-toggle { padding: 14px 14px; }
+  .fws-title { font-size: 15px; }
+  .fws-body { padding: 0 14px 16px; }
   .fws-wash-row { grid-template-columns: 1fr 1fr; }
   .fws-fields { grid-template-columns: 1fr 1fr; }
+  .fws-fabric-row { grid-template-columns: 1fr 1fr; }
   .fws-summary { display: none; }
-  .fws-title { font-size: 12px; }
+  .fws-body .input-group label { font-size: 13px; }
+  .fws-body .input-group input,
+  .fws-body .input-group select { font-size: 16px; min-height: 48px; }
+  .fws-step-label { font-size: 12px; }
+  .fws-collapse-btn { font-size: 14px; min-height: 48px; width: 100%; justify-content: center; }
+  .fws-tip { font-size: 13px; }
 }
 @media screen and (max-width: 480px) {
   .fws-wash-row,
-  .fws-fields { grid-template-columns: 1fr; }
+  .fws-fields,
+  .fws-fabric-row { grid-template-columns: 1fr; }
+  .fws-toggle { padding: 13px 12px; }
 }
 
 /* ── Auto-save success toast ─────────────────────────────────────────────────── */
@@ -4373,12 +4403,298 @@ body {
   100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
 }
 
-/* fws-fabric-row: same 2-col grid as other fws-fields but labelled differently */
-.fws-fabric-row {
-  grid-template-columns: 1fr 1fr;
+/* fws-summary-empty hint */
+.fws-summary-empty {
+  color: #90caf9;
+  font-style: italic;
 }
 
-@media screen and (max-width: 480px) {
-  .fws-fabric-row { grid-template-columns: 1fr; }
-  .save-toast { right: 12px; left: 12px; justify-content: center; }
+/* ── Result card inline delete confirmation ──────────────────────────────────── */
+.res-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  animation: res-confirm-in 0.14s ease;
+}
+@keyframes res-confirm-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.res-delete-confirm-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--danger);
+  white-space: nowrap;
+}
+.res-delete-confirm-yes {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 28px;
+  transition: background 0.12s;
+}
+.res-delete-confirm-yes:hover { background: #b71c1c; }
+.res-delete-confirm-no {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  background: var(--secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-light);
+  font-family: inherit;
+  min-height: 28px;
+  transition: background 0.12s;
+}
+.res-delete-confirm-no:hover { background: #eee; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   GLOBAL TYPOGRAPHY SCALE — bump all tiny sizes one step up
+   All devices. Ensures nothing is below 13px (comfortable reading threshold).
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Core UI elements ────────────────────────────────────────────────────────── */
+.card-title           { font-size: 16px !important; }
+.card h4              { font-size: 15px !important; }
+.card p               { font-size: 14px !important; }
+
+/* ── Input labels & hints ─────────────────────────────────────────────────────── */
+.input-group label    { font-size: 14px !important; }
+.input-group input,
+.input-group select   { font-size: 16px !important; }
+
+/* ── Navigation ──────────────────────────────────────────────────────────────── */
+.mobile-nav-btn       { font-size: 13px !important; }
+.more-drawer-btn      { font-size: 15px !important; }
+.more-drawer-title    { font-size: 13px !important; }
+.sidebar-btn          { font-size: 16px !important; }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+.btn                  { font-size: 15px !important; }
+.stg-btn              { font-size: 14px !important; }
+
+/* ── Settings page ────────────────────────────────────────────────────────────── */
+.stg-tab-btn          { font-size: 15px !important; }
+.stg-section-title    { font-size: 17px !important; }
+.stg-row-label > span:first-child { font-size: 15px !important; }
+.stg-row-hint         { font-size: 13px !important; }
+.stg-desc             { font-size: 14px !important; }
+.stg-select           { font-size: 15px !important; }
+.stg-input            { font-size: 15px !important; }
+.stg-number-input     { font-size: 16px !important; }
+.stg-toggle-label     { font-size: 14px !important; }
+.stg-collapse-btn     { font-size: 15px !important; }
+.stg-callout          { font-size: 13px !important; }
+.stg-taxonomy-name    { font-size: 14px !important; }
+.stg-taxonomy-header  { font-size: 13px !important; }
+.stg-profile-name     { font-size: 15px !important; }
+.stg-profile-meta     { font-size: 13px !important; }
+.stg-danger-title     { font-size: 16px !important; }
+.stg-danger-desc      { font-size: 13px !important; }
+.stg-preview-row      { font-size: 14px !important; }
+.stg-preview-label    { font-size: 13px !important; }
+
+/* ── Results / Database page ─────────────────────────────────────────────────── */
+.res-card-name        { font-size: 16px !important; }
+.res-card-meta        { font-size: 13px !important; }
+.res-shrink-label     { font-size: 12px !important; }
+.res-shrink-val       { font-size: 22px !important; }
+.res-badge            { font-size: 12px !important; }
+.res-filter-select    { font-size: 14px !important; }
+.res-search-input     { font-size: 15px !important; }
+.res-sidebar-item     { font-size: 14px !important; }
+.res-sidebar-title    { font-size: 13px !important; }
+.res-sidebar-count    { font-size: 12px !important; }
+.res-action-btn       { font-size: 13px !important; }
+.res-select-row       { font-size: 14px !important; }
+.res-empty p          { font-size: 15px !important; }
+.res-batch-count      { font-size: 15px !important; }
+.res-batch-btn        { font-size: 14px !important; }
+.res-report-meta      { font-size: 14px !important; }
+.res-inline-detail    { font-size: 14px !important; }
+.res-detail-table     { font-size: 13px !important; }
+.res-ship-group-header { font-size: 14px !important; }
+.res-print-inline-btn { font-size: 14px !important; }
+.res-delete-confirm-label { font-size: 13px !important; }
+
+/* ── Advanced table ──────────────────────────────────────────────────────────── */
+.advanced-test-table  { font-size: 14px !important; }
+.advanced-test-table th { font-size: 13px !important; }
+.advanced-test-table input { font-size: 15px !important; }
+
+/* ── Roll table ───────────────────────────────────────────────────────────────── */
+.roll-table           { font-size: 14px !important; }
+.roll-table th        { font-size: 13px !important; }
+.roll-table input     { font-size: 15px !important; }
+
+/* ── Sampling calculator ──────────────────────────────────────────────────────── */
+.sampling-header h3   { font-size: 17px !important; }
+.sampling-header p    { font-size: 14px !important; }
+.sampling-field label { font-size: 13px !important; }
+.sampling-output span { font-size: 14px !important; }
+.sampling-breakdown   { font-size: 13px !important; }
+.sampling-warning     { font-size: 13px !important; }
+.sampling-footnote    { font-size: 13px !important; }
+.sampling-output strong { font-size: 30px !important; }
+
+/* ── Fab & Wash specs ─────────────────────────────────────────────────────────── */
+.fws-title            { font-size: 16px !important; }
+.fws-step-label       { font-size: 13px !important; }
+.fws-body .input-group label { font-size: 14px !important; }
+.fws-body .input-group input,
+.fws-body .input-group select { font-size: 15px !important; }
+.fws-summary          { font-size: 14px !important; }
+.fws-tip              { font-size: 14px !important; }
+.fws-collapse-btn     { font-size: 15px !important; }
+.fws-std-badge        { font-size: 11px !important; }
+.fws-step3-label      { font-size: 15px !important; }
+
+/* ── Set defaults bar ─────────────────────────────────────────────────────────── */
+.set-defaults-label   { font-size: 14px !important; }
+.set-defaults-field label { font-size: 14px !important; }
+.set-defaults-input   { font-size: 16px !important; }
+.set-defaults-apply   { font-size: 14px !important; }
+
+/* ── Roll Manager stats ───────────────────────────────────────────────────────── */
+.rm-stats-header      { font-size: 14px !important; }
+.rm-stat-label        { font-size: 13px !important; }
+.rm-stat-val          { font-size: 22px !important; }
+.rm-group-card        { font-size: 14px !important; }
+.rm-tab-btn           { font-size: 15px !important; }
+
+/* ── Quick math ───────────────────────────────────────────────────────────────── */
+.qm-label             { font-size: 15px !important; }
+.qm-input-field       { font-size: 17px !important; }
+.qm-answer-label      { font-size: 13px !important; }
+
+/* ── Page headers ─────────────────────────────────────────────────────────────── */
+.page-header h1       { font-size: 22px !important; }
+
+/* ── Toast / dialogs ──────────────────────────────────────────────────────────── */
+.save-toast           { font-size: 15px !important; }
+.dlg-message          { font-size: 16px !important; }
+.dlg-title            { font-size: 18px !important; }
+.dlg-btn              { font-size: 16px !important; }
+
+/* ── Mobile: ensure minimum 14px everywhere for finger-friendly reading ─────── */
+@media screen and (max-width: 768px) {
+  body                { font-size: 16px !important; }
+  .card-title         { font-size: 16px !important; }
+  .card p, .card span { font-size: 14px !important; }
+  .btn                { font-size: 15px !important; }
+  .input-group label  { font-size: 14px !important; }
+  .fws-body .input-group label { font-size: 14px !important; }
+  .res-card-name      { font-size: 16px !important; }
+  .res-shrink-val     { font-size: 20px !important; }
+  .sampling-output strong { font-size: 28px !important; }
+  .stg-row-label > span:first-child { font-size: 15px !important; }
+  .stg-section-title  { font-size: 16px !important; }
+  .advanced-test-table,
+  .roll-table         { font-size: 14px !important; }
+  .advanced-test-table input,
+  .roll-table input   { font-size: 16px !important; }
+}
+
+/* ── Edit mode banner ────────────────────────────────────────────────────────── */
+.edit-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  background: #fff8e1;
+  border: 1.5px solid #f59e0b;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+  flex-wrap: wrap;
+}
+.edit-mode-banner i { color: #d97706; font-size: 15px; }
+.edit-mode-banner span { flex: 1; }
+.edit-mode-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #fff;
+  border: 1.5px solid #d97706;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  white-space: nowrap;
+  min-height: 36px;
+}
+.edit-mode-cancel:hover { background: #fef3c7; }
+
+@media screen and (max-width: 768px) {
+  .edit-mode-banner { font-size: 13px; }
+  .edit-mode-cancel { width: 100%; justify-content: center; }
+}
+
+/* ── Record updated toast (shown on Results page after edit-save) ────────────── */
+.record-update-toast {
+  position: fixed;
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 20px;
+  background: #1b5e20;
+  color: #fff;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 32px rgba(27, 94, 32, 0.45);
+  z-index: 9999;
+  max-width: 340px;
+  opacity: 0;
+  transform: translateY(16px) scale(0.92);
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.record-update-toast-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.record-update-toast i {
+  font-size: 22px;
+  color: #a5d6a7;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.record-update-toast-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.record-update-toast-sub {
+  font-size: 13px;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+@media screen and (max-width: 768px) {
+  .record-update-toast {
+    left: 12px;
+    right: 12px;
+    max-width: unset;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
 }

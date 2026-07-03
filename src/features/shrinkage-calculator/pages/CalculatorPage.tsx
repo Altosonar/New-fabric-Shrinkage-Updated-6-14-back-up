@@ -25,6 +25,9 @@ export function CalculatorPage() {
   const [calcMode, setCalcMode] = useState<CalcMode>('shrinkage');
   const [unit, setUnit] = useState<Unit>('inches');
   const [editingId, setEditingIdLocal] = useState<number | null>(null);
+  // Track which section is in edit mode (for advanced / roll manager)
+  const [advEditId, setAdvEditId] = useState<number | null>(null);
+  const [rollEditId, setRollEditId] = useState<number | null>(null);
   const [sidebarPortalTarget, setSidebarPortalTarget] = useState<HTMLElement | null>(null);
   const [mobileNavPortalTarget, setMobileNavPortalTarget] = useState<HTMLElement | null>(null);
 
@@ -70,8 +73,8 @@ export function CalculatorPage() {
   const [showResults, setShowResults] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileStage, setMobileStage] = useState<'input' | 'results'>('input');
-  // specOpen: Fabric & Wash Specifications accordion (collapsed by default after first fill)
-  const [specOpen, setSpecOpen] = useState(true);
+  // specOpen: Fabric & Wash Specifications accordion (collapsed by default)
+  const [specOpen, setSpecOpen] = useState(false);
 
   // Ref for auto-scrolling to the visualizer on desktop after Calculate
   const previewRef = useRef<HTMLDivElement>(null);
@@ -221,30 +224,19 @@ export function CalculatorPage() {
     setTimeout(() => { setSaveToast('idle'); resetForm(); }, 2200);
   };
 
-  // Reset form
+  // Reset form — clears measurements only; fabric & wash specs are preserved
   const resetForm = () => {
-    setWash('');
-    setWashCustom('');
-    setTemp('');
-    setDuration('');
-    setDrying('');
-    setTempIsStandard(false);
-    setDurationIsStandard(false);
     setBwL('');
     setBwW('');
     setAwL('');
     setAwW('');
     setWidthShrink(0);
     setLengthShrink(0);
-    setFabricType('Denim');
-    setFabricTypeCustom('');
-    setFabricName('');
     setEditingIdLocal(null);
     setEditingId(null);
     setUserHasTyped(false);
     setShowResults(false);
     setMobileStage('input');
-    setSpecOpen(true);
   };
 
   // Cancel edit
@@ -357,11 +349,33 @@ export function CalculatorPage() {
       setCalcMode('shrinkage');
     };
 
+    const onEditSample = (e: Event) => {
+      const res = (e as CustomEvent).detail;
+      setAdvEditId(res?.id ?? null);
+      setCalcMode('advanced');
+    };
+    const onEditRollGroup = (e: Event) => {
+      const res = (e as CustomEvent).detail;
+      setRollEditId(res?.id ?? null);
+      setCalcMode('rollmgr');
+    };
+    const onEditShipment = (e: Event) => {
+      const res = (e as CustomEvent).detail;
+      setRollEditId(res?.id ?? null);
+      setCalcMode('rollmgr');
+    };
+
     window.addEventListener('edit-result', onEditResult);
+    window.addEventListener('edit-sample', onEditSample);
+    window.addEventListener('edit-rollgroup', onEditRollGroup);
+    window.addEventListener('edit-shipment', onEditShipment);
     window.addEventListener('duplicate-result', onDuplicateResult);
     window.addEventListener('load-average', onLoadAverage);
     return () => {
       window.removeEventListener('edit-result', onEditResult);
+      window.removeEventListener('edit-sample', onEditSample);
+      window.removeEventListener('edit-rollgroup', onEditRollGroup);
+      window.removeEventListener('edit-shipment', onEditShipment);
       window.removeEventListener('duplicate-result', onDuplicateResult);
       window.removeEventListener('load-average', onLoadAverage);
     };
@@ -421,14 +435,6 @@ export function CalculatorPage() {
           </button>
           <button
             type="button"
-            className={`sidebar-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
-            onClick={() => setCalcMode('quickmath')}
-            title="Quick Math"
-          >
-            <i className="fas fa-calculator"></i>
-          </button>
-          <button
-            type="button"
             className={`sidebar-btn ${calcMode === 'advanced' ? 'active' : ''}`}
             onClick={() => setCalcMode('advanced')}
             title="Advanced"
@@ -442,6 +448,14 @@ export function CalculatorPage() {
             title="Rolls"
           >
             <i className="fas fa-layer-group"></i>
+          </button>
+          <button
+            type="button"
+            className={`sidebar-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
+            onClick={() => setCalcMode('quickmath')}
+            title="Quick Math"
+          >
+            <i className="fas fa-calculator"></i>
           </button>
           <div className="sidebar-divider"></div>
           <button
@@ -536,19 +550,19 @@ export function CalculatorPage() {
             </button>
             <button
               type="button"
-              className={`mobile-nav-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
-              onClick={() => { setCalcMode('quickmath'); setMoreOpen(false); }}
-            >
-              <i className="fas fa-calculator"></i>
-              <span>Quick</span>
-            </button>
-            <button
-              type="button"
               className={`mobile-nav-btn ${calcMode === 'rollmgr' ? 'active' : ''}`}
               onClick={() => { setCalcMode('rollmgr'); setMoreOpen(false); }}
             >
               <i className="fas fa-layer-group"></i>
               <span>Rolls</span>
+            </button>
+            <button
+              type="button"
+              className={`mobile-nav-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
+              onClick={() => { setCalcMode('quickmath'); setMoreOpen(false); }}
+            >
+              <i className="fas fa-calculator"></i>
+              <span>Quick</span>
             </button>
             <button
               type="button"
@@ -907,6 +921,8 @@ export function CalculatorPage() {
         <div id="calc-mode-advanced" className="calc-mode active">
           <AdvancedTest
             unit={unit}
+            editingId={advEditId}
+            onCancelEdit={() => { setAdvEditId(null); setCalcMode('results'); }}
             onTransferToMain={(avgL, avgW) => {
               setBwL('100');
               setBwW('100');
@@ -924,6 +940,8 @@ export function CalculatorPage() {
         <div id="calc-mode-rollmgr" className="calc-mode active">
           <RollManager
             unit={unit}
+            editingId={rollEditId}
+            onCancelEdit={() => { setRollEditId(null); setCalcMode('results'); }}
             onTransferToMain={(avgL, avgW) => {
               if (avgL !== 0) {
                 setBwL('100');

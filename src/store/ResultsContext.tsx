@@ -14,6 +14,7 @@ interface ResultsState {
   folders: Folder[];
   tags: Tag[];
   selectedIds: Set<number>;
+  lastDeleted: SavedResult | null;
 }
 
 // Action types
@@ -23,6 +24,7 @@ type ResultsAction =
   | { type: 'UPDATE_RESULT'; payload: SavedResult }
   | { type: 'DELETE_RESULT'; payload: number }
   | { type: 'DELETE_ALL' }
+  | { type: 'RESTORE_LAST' }
   | { type: 'SET_EDITING_ID'; payload: number | null }
   | { type: 'SET_UNIT'; payload: Unit }
   | { type: 'IMPORT_RESULTS'; payload: SavedResult[] }
@@ -46,7 +48,8 @@ const initialState: ResultsState = {
   unit: 'inches',
   folders: [],
   tags: [],
-  selectedIds: new Set()
+  selectedIds: new Set(),
+  lastDeleted: null,
 };
 
 // Load initial results from localStorage
@@ -104,10 +107,18 @@ function resultsReducer(state: ResultsState, action: ResultsAction): ResultsStat
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
       return { ...state, results: newResults };
       
-    case 'DELETE_RESULT':
+    case 'DELETE_RESULT': {
+      const deleted = state.results.find(r => r.id === action.payload) || null;
       newResults = state.results.filter(r => r.id !== action.payload);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
-      return { ...state, results: newResults };
+      return { ...state, results: newResults, lastDeleted: deleted };
+    }
+    case 'RESTORE_LAST': {
+      if (!state.lastDeleted) return state;
+      newResults = [...state.results, state.lastDeleted];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
+      return { ...state, results: newResults, lastDeleted: null };
+    }
       
     case 'DELETE_ALL':
       localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
@@ -215,6 +226,7 @@ interface ResultsContextType {
   addResult: (result: SavedResult) => void;
   updateResult: (result: SavedResult) => void;
   deleteResult: (id: number) => void;
+  restoreLastDeleted: () => void;
   deleteAll: () => void;
   importResults: (results: SavedResult[]) => void;
   exportResults: () => string;
@@ -274,6 +286,10 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
 
   const deleteResult = (id: number) => {
     dispatch({ type: 'DELETE_RESULT', payload: id });
+  };
+
+  const restoreLastDeleted = () => {
+    dispatch({ type: 'RESTORE_LAST' });
   };
 
   const { showConfirm } = useDialog();
@@ -354,7 +370,7 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
     addResult,
     updateResult,
     deleteResult,
-    deleteAll,
+    restoreLastDeleted,
     importResults,
     exportResults,
     setEditingId,

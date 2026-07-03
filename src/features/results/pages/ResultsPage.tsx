@@ -277,6 +277,7 @@ function ResultCard({
   allTags: Tag[]; allFolders: Folder[];
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [showTagMenu, setShowTagMenu] = useState(false);
   const [showFolderMenu, setShowFolderMenu] = useState(false);
   const tagMenuRef = useRef<HTMLDivElement>(null);
@@ -341,7 +342,20 @@ function ResultCard({
             <i className="fas fa-folder"></i> {folder.name}
           </span>
         )}
-        <i className="fas fa-trash res-card-delete" onClick={onDelete} title="Delete"></i>
+        {/* Delete: first click arms confirmation, second click confirms */}
+        {confirmDelete ? (
+          <div className="res-delete-confirm">
+            <span className="res-delete-confirm-label">Delete?</span>
+            <button className="res-delete-confirm-yes" onClick={onDelete} title="Yes, delete">
+              <i className="fas fa-check"></i> Yes
+            </button>
+            <button className="res-delete-confirm-no" onClick={() => setConfirmDelete(false)} title="Cancel">
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+        ) : (
+          <i className="fas fa-trash res-card-delete" onClick={() => setConfirmDelete(true)} title="Delete"></i>
+        )}
       </div>
       <div className="res-card-name">{name}</div>
       <div className="res-card-meta">
@@ -437,7 +451,8 @@ export function ResultsPage() {
     isFabricResult, isRollGroup, isShipment, isSampleTest,
     addFolder, deleteFolder, addTag, deleteTag,
     assignResultTag, removeResultTag, assignResultFolder,
-    toggleSelect, selectAll, clearSelection, bulkDelete, bulkExport
+    toggleSelect, selectAll, clearSelection, bulkDelete, bulkExport,
+    restoreLastDeleted
   } = useResults();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -449,7 +464,19 @@ export function ResultsPage() {
   const [showFolderMgr, setShowFolderMgr] = useState(false);
   const [showTagMgr, setShowTagMgr] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
+  const [updateToast, setUpdateToast] = useState<string | null>(null);
   const overflowRef = useRef<HTMLDivElement>(null);
+
+  // Show update toast when returning from edit mode
+  // The name is stored in sessionStorage before navigation so it survives the mount cycle
+  useEffect(() => {
+    const pending = sessionStorage.getItem('pendingUpdateToast');
+    if (pending) {
+      sessionStorage.removeItem('pendingUpdateToast');
+      setUpdateToast(pending);
+      setTimeout(() => setUpdateToast(null), 2800);
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -558,6 +585,9 @@ export function ResultsPage() {
           <div className="res-header-secondary" style={{ display: 'contents' }}>
             <Button variant="outline" icon={<i className="fas fa-folder"></i>} onClick={() => setShowFolderMgr(true)}>Folders</Button>
             <Button variant="outline" icon={<i className="fas fa-tags"></i>} onClick={() => setShowTagMgr(true)}>Tags</Button>
+            {state.lastDeleted && (
+              <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={restoreLastDeleted}>Restore Last</Button>
+            )}
             <Button variant="outline" icon={<i className="fas fa-download"></i>} onClick={handleExport}>Export</Button>
             <label className="btn btn-outline" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 6, border: '1px solid var(--border-color)', fontWeight: 600, fontSize: 13 }}>
               <i className="fas fa-upload"></i> Import
@@ -583,6 +613,11 @@ export function ResultsPage() {
                 <button className="res-overflow-item" onClick={() => { setShowTagMgr(true); setShowOverflow(false); }}>
                   <i className="fas fa-tags"></i> Tags
                 </button>
+                {state.lastDeleted && (
+                  <button className="res-overflow-item" onClick={() => { restoreLastDeleted(); setShowOverflow(false); }}>
+                    <i className="fas fa-undo"></i> Restore Last Deleted
+                  </button>
+                )}
                 <div className="res-overflow-divider" />
                 <button className="res-overflow-item" onClick={() => { handleExport(); setShowOverflow(false); }}>
                   <i className="fas fa-download"></i> Export ({settings.exportFormat.toUpperCase()})
@@ -680,7 +715,17 @@ export function ResultsPage() {
                   selected={state.selectedIds.has(result.id)}
                   onToggleSelect={() => toggleSelect(result.id)}
                   onDelete={() => deleteResult(result.id)}
-                  onEdit={isFabricResult(result) ? () => window.dispatchEvent(new CustomEvent('edit-result', { detail: result })) : undefined}
+                  onEdit={
+                    isFabricResult(result)
+                      ? () => window.dispatchEvent(new CustomEvent('edit-result', { detail: result }))
+                      : isSampleTest(result)
+                        ? () => window.dispatchEvent(new CustomEvent('edit-sample', { detail: result }))
+                        : isRollGroup(result)
+                          ? () => window.dispatchEvent(new CustomEvent('edit-rollgroup', { detail: result }))
+                          : isShipment(result)
+                            ? () => window.dispatchEvent(new CustomEvent('edit-shipment', { detail: result }))
+                            : undefined
+                  }
                   onDuplicate={
                     isFabricResult(result)
                       ? () => window.dispatchEvent(new CustomEvent('duplicate-result', { detail: result }))
@@ -729,6 +774,17 @@ export function ResultsPage() {
         folders={state.folders} addFolder={addFolder} deleteFolder={deleteFolder} />
       <TagManagerModal open={showTagMgr} onClose={() => setShowTagMgr(false)}
         tags={state.tags} addTag={addTag} deleteTag={deleteTag} />
+
+      {/* Record updated toast */}
+      {updateToast && (
+        <div className="record-update-toast record-update-toast-in">
+          <i className="fas fa-check-circle"></i>
+          <div>
+            <div className="record-update-toast-title">Record Updated</div>
+            <div className="record-update-toast-sub">"{updateToast}" has been saved to your library.</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

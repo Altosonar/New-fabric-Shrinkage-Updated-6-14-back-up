@@ -63,6 +63,13 @@ export interface RollGroup extends SavedResultMeta {
   avgL: number;
   avgW: number;
   date: string;
+  // Fabric & wash context (set when saving from Roll Manager)
+  fabricType?: string;
+  fabricName?: string;
+  wash?: string;
+  temp?: string;
+  duration?: string;
+  drying?: string;
 }
 
 // Shipment containing multiple groups
@@ -79,6 +86,12 @@ export interface Shipment extends SavedResultMeta {
   name: string;
   groups: ShipmentGroup[];
   date: string;
+  fabricType?: string;
+  fabricName?: string;
+  wash?: string;
+  temp?: string;
+  duration?: string;
+  drying?: string;
 }
 
 // Sample test result
@@ -102,6 +115,12 @@ export interface SampleTest extends SavedResultMeta {
   desiredL: number | null;
   desiredW: number | null;
   date: string;
+  fabricType?: string;
+  fabricName?: string;
+  wash?: string;
+  temp?: string;
+  duration?: string;
+  drying?: string;
 }
 
 // Union type for all saved results
