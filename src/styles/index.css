@@ -949,20 +949,23 @@ body {
 }
 
 /* Per-row delete button */
+/* adv-delete-row-btn now shares identical styling with roll-delete-btn */
 .adv-delete-row-btn {
-  background: none;
-  border: none;
-  color: #ccc;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #b71c1c;
+  padding: 6px 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  padding: 4px 6px;
-  border-radius: 4px;
-  transition: color 0.2s, background 0.2s;
+  transition: 0.15s;
   line-height: 1;
 }
-.adv-delete-row-btn:hover {
-  color: var(--danger);
-  background: #fee2e2;
+.adv-delete-row-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.adv-delete-row-btn:hover:not(:disabled) {
+  background: #ffebee;
 }
 
 /* Add Sample button */
@@ -978,10 +981,13 @@ body {
   padding: 8px 18px;
   border-radius: 8px;
   cursor: pointer;
-  margin-bottom: 22px;
+  margin-bottom: 0; /* margin handled by parent roll-group-actions gap */
   transition: background 0.2s, color 0.2s;
   width: 100%;
   justify-content: center;
+  min-height: 44px;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 .adv-add-row-btn:hover {
   background: var(--info-light);

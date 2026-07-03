@@ -335,7 +335,7 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
               <th>After Width</th>
               <th>Shrink L%</th>
               <th>Shrink W%</th>
-              <th style={{ width: '40px' }}></th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -401,15 +401,16 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
                   {row.sW}
                 </td>
                 <td>
-                  {rows.length > 2 && (
-                    <button
-                      className="adv-delete-row-btn"
-                      onClick={() => handleDeleteRow(idx)}
-                      title={`Delete Sample #${idx + 1}`}
-                    >
-                      <i className="fas fa-times"></i>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="roll-delete-btn"
+                    onClick={() => handleDeleteRow(idx)}
+                    disabled={rows.length <= 2}
+                    aria-label={`Delete Sample #${idx + 1}`}
+                    title={`Delete Sample #${idx + 1}`}
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
                 </td>
               </tr>
             ))}
@@ -417,18 +418,22 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
         </table>
       </div>
 
-      {/* ── Add Sample Button ─────────────────────────────────────────────────── */}
-      <button className="adv-add-row-btn" onClick={handleAddRow}>
-        <i className="fas fa-plus"></i> Add Sample
-      </button>
-
-      {/* ── Next: Apply to Pattern button ── */}
-      <button
-        className="adv-next-part-btn"
-        onClick={() => setAdvPart('insights')}
-      >
-        <i className="fas fa-arrow-right"></i> Next: Apply to Pattern
-      </button>
+      {/* ── Table action buttons (matches Roll Manager layout) ───────────────── */}
+      <div className="roll-group-actions">
+        <div className="roll-action-row">
+          <Button variant="danger" className="clear-all-btn" icon={<i className="fas fa-trash-alt"></i>} onClick={handleClearAll}>Clear All</Button>
+          <button className="adv-add-row-btn" style={{ margin: 0, flex: 1 }} onClick={handleAddRow}>
+            <i className="fas fa-plus"></i> Add Sample
+          </button>
+        </div>
+        <button
+          className="adv-next-part-btn roll-add-btn"
+          style={{ width: '100%' }}
+          onClick={() => setAdvPart('insights')}
+        >
+          <i className="fas fa-arrow-right"></i> Next: Apply to Pattern
+        </button>
+      </div>
       </div>{/* end adv-two-part data */}
 
       {/* ── PART 2: Pattern Application / Insights (collapsed by default) ── */}
