@@ -39,7 +39,9 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
   const nextOrderRef = useRef(6);
   const lastClearTokenRef = useRef<string | null>(null);
   const [rows, setRows] = useLocalStorage<RollRow[]>('rollManagerRows_v3', defaultRows);
-  const [fillDownVisible, setFillDownVisible] = useState<{ bL: boolean; bW: boolean }>({ bL: false, bW: false });
+  // "Set Defaults" bar state — used in the bar above the table
+  const [defaultBL, setDefaultBL] = useState('');
+  const [defaultBW, setDefaultBW] = useState('');
   const [stats, setStats] = useState<RollStats>({ avgL: 0, avgW: 0, rangeL: 0, rangeW: 0 });
   const [groupedRolls, setGroupedRolls] = useLocalStorage<GroupedRoll[]>('rollManagerGroupedRolls', []);
   const [recommendation, setRecommendation] = useState({ text: 'Enter measurements to analyze.', type: 'normal' });
@@ -68,21 +70,15 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
 
   // ── Row mutations ────────────────────────────────────────────────────────────
   // Part 1 fix: handleRowChange ONLY updates the exact cell that changed.
-  // Cascade removed — other rows are untouched until Fill Down is clicked.
   const handleRowChange = (rowIndex: number, field: keyof RollRow, value: string) => {
     setRows(prev => prev.map((row, i) => i === rowIndex ? { ...row, [field]: value } : row));
-    // Show fill-down pill when row 0 Before field is non-empty
-    if (rowIndex === 0 && (field === 'bL' || field === 'bW')) {
-      setFillDownVisible(prev => ({ ...prev, [field]: value.trim() !== '' }));
-    }
   };
 
-  // Part 2: explicitly fill top value down to every row below
-  const handleFillDown = (field: 'bL' | 'bW') => {
-    const topValue = rows[0]?.[field];
-    if (!topValue) return;
-    setRows(prev => prev.map((row, i) => i === 0 ? row : { ...row, [field]: topValue }));
-    setFillDownVisible(prev => ({ ...prev, [field]: false }));
+  // Apply default Before value to ALL rows (overwrites every row).
+  // Triggered by Enter key or the Apply button in the Set Defaults bar.
+  const applyDefault = (field: 'bL' | 'bW', value: string) => {
+    if (!value.trim()) return;
+    setRows(prev => prev.map(row => ({ ...row, [field]: value })));
   };
 
   // Part 3: Arrow-key grid navigation.
@@ -575,7 +571,7 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
 
       {/* ── Roll Measurements Table ─────────────────────────────────────────── */}
       <h3>Roll Measurements</h3>
-      <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '15px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '12px' }}>
         Enter measurements for each roll.{' '}
         <strong>Shrinkage auto-calculates</strong> as you type.
         {completeRowCount >= 2
@@ -583,6 +579,48 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
           : <span style={{ color: 'var(--text-light)' }}> Enter 2+ complete rows to see groups.</span>
         }
       </p>
+
+      {/* ── Set Defaults Bar ─────────────────────────────────────────────────── */}
+      {/* Type a value and press Enter (or click Apply) to fill that column.     */}
+      <div className="set-defaults-bar">
+        <span className="set-defaults-label">
+          <i className="fas fa-magic"></i> Set All Before:
+        </span>
+        <div className="set-defaults-field">
+          <label htmlFor="roll-default-bL">Length</label>
+          <input
+            id="roll-default-bL"
+            type="number"
+            placeholder="e.g. 20"
+            value={defaultBL}
+            onChange={e => setDefaultBL(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyDefault('bL', defaultBL); } }}
+            className="set-defaults-input"
+          />
+          <button
+            className="set-defaults-apply"
+            onClick={() => applyDefault('bL', defaultBL)}
+            title="Fill all Before L cells (Enter)"
+          >↓ Apply</button>
+        </div>
+        <div className="set-defaults-field">
+          <label htmlFor="roll-default-bW">Width</label>
+          <input
+            id="roll-default-bW"
+            type="number"
+            placeholder="e.g. 20"
+            value={defaultBW}
+            onChange={e => setDefaultBW(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyDefault('bW', defaultBW); } }}
+            className="set-defaults-input"
+          />
+          <button
+            className="set-defaults-apply"
+            onClick={() => applyDefault('bW', defaultBW)}
+            title="Fill all Before W cells (Enter)"
+          >↓ Apply</button>
+        </div>
+      </div>
 
       <div className="roll-table-container">
         <table className="roll-table" id="roll-table">
@@ -623,42 +661,22 @@ export function RollManager({ unit, onTransferToMain }: RollManagerProps) {
                     />
                   </td>
                   {/* col 1 = bL */}
-                  <td className={idx === 0 ? 'fill-down-cell' : ''}>
+                  <td>
                     <input
                       id={`roll-${idx}-1`}
                       type="number" step="any" value={row.bL}
                       onChange={(e) => handleRowChange(idx, 'bL', e.target.value)}
                       onKeyDown={(e) => handleCellKeyDown(e, idx, 1)}
                     />
-                    {idx === 0 && fillDownVisible.bL && (
-                      <button
-                        className="fill-down-pill"
-                        onMouseDown={(e) => { e.preventDefault(); handleFillDown('bL'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bL'); } }}
-                        title="Copy to all rows (Enter)"
-                      >
-                        <i className="fas fa-arrow-down"></i> Fill Down
-                      </button>
-                    )}
                   </td>
                   {/* col 2 = bW */}
-                  <td className={idx === 0 ? 'fill-down-cell' : ''}>
+                  <td>
                     <input
                       id={`roll-${idx}-2`}
                       type="number" step="any" value={row.bW}
                       onChange={(e) => handleRowChange(idx, 'bW', e.target.value)}
                       onKeyDown={(e) => handleCellKeyDown(e, idx, 2)}
                     />
-                    {idx === 0 && fillDownVisible.bW && (
-                      <button
-                        className="fill-down-pill"
-                        onMouseDown={(e) => { e.preventDefault(); handleFillDown('bW'); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bW'); } }}
-                        title="Copy to all rows (Enter)"
-                      >
-                        <i className="fas fa-arrow-down"></i> Fill Down
-                      </button>
-                    )}
                   </td>
                   {/* col 3 = aL */}
                   <td>

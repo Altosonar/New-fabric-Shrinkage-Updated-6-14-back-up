@@ -32,7 +32,9 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   const { addResult } = useResults();
   const { showAlert, showConfirm } = useDialog();
   const [rows, setRows] = useLocalStorage<RowData[]>('advancedTestRows_v3', defaultRows);
-  const [fillDownVisible, setFillDownVisible] = useState<{ bL: boolean; bW: boolean }>({ bL: false, bW: false });
+  // "Set Defaults" bar — values entered above the table to bulk-fill Before columns
+  const [defaultBL, setDefaultBL] = useState('');
+  const [defaultBW, setDefaultBW] = useState('');
   const [avgL, setAvgL] = useState(0);
   const [avgW, setAvgW] = useState(0);
   const [validSampleCount, setValidSampleCount] = useState(0);
@@ -120,23 +122,16 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   ]);
 
   // ── Row mutations ────────────────────────────────────────────────────────────
-  // Part 1 fix: handleRowChange ONLY updates the changed cell.
-  // Cascade is intentionally removed — rows stay independent until
-  // the user explicitly clicks/presses Enter on the Fill Down pill.
+  // Part 1 fix: handleRowChange ONLY updates the changed cell — no cascade.
   const handleRowChange = (rowIndex: number, field: keyof RowData, value: string) => {
     setRows(prev => prev.map((row, i) => i === rowIndex ? { ...row, [field]: value } : row));
-    // Show fill-down pill whenever row 0 Before field has a value
-    if (rowIndex === 0 && (field === 'bL' || field === 'bW')) {
-      setFillDownVisible(prev => ({ ...prev, [field]: value.trim() !== '' }));
-    }
   };
 
-  // Part 2: fill-down applies top value to ALL rows below
-  const handleFillDown = (field: 'bL' | 'bW') => {
-    const topValue = rows[0]?.[field];
-    if (!topValue) return;
-    setRows(prev => prev.map((row, i) => i === 0 ? row : { ...row, [field]: topValue }));
-    setFillDownVisible(prev => ({ ...prev, [field]: false }));
+  // Apply default Before values to ALL rows (overwrites every row, empty or not).
+  // Triggered by Enter key or clicking the Apply button in the Set Defaults bar.
+  const applyDefault = (field: 'bL' | 'bW', value: string) => {
+    if (!value.trim()) return;
+    setRows(prev => prev.map(row => ({ ...row, [field]: value })));
   };
 
   // Part 3: Arrow-key grid navigation.
@@ -279,11 +274,55 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
       </h2>
       <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '16px' }}>
         Enter samples to calculate true average shrinkage.{' '}
-        <em>Fill Row #1 to auto-fill original dimensions for all other rows.</em>
+        <em>Use the defaults bar below to fill Before columns across all rows at once.</em>
       </p>
 
       {/* ── PART 1: Data Collection — Table (expanded by default) ── */}
       <div className={`adv-two-part${advPart === 'data' ? ' adv-part-active' : ''}`}>
+
+      {/* ── Set Defaults Bar ─────────────────────────────────────────────────── */}
+      {/* Enter a value and press Enter (or click Apply) to fill that column.    */}
+      <div className="set-defaults-bar">
+        <span className="set-defaults-label">
+          <i className="fas fa-magic"></i> Set All Before:
+        </span>
+        <div className="set-defaults-field">
+          <label htmlFor="adv-default-bL">Length</label>
+          <input
+            id="adv-default-bL"
+            type="number"
+            placeholder="e.g. 20"
+            value={defaultBL}
+            onChange={e => setDefaultBL(e.target.value)}
+            // Enter key: fill all Before Length cells immediately
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyDefault('bL', defaultBL); } }}
+            className="set-defaults-input"
+          />
+          <button
+            className="set-defaults-apply"
+            onClick={() => applyDefault('bL', defaultBL)}
+            title="Fill all Before Length cells (Enter)"
+          >↓ Apply</button>
+        </div>
+        <div className="set-defaults-field">
+          <label htmlFor="adv-default-bW">Width</label>
+          <input
+            id="adv-default-bW"
+            type="number"
+            placeholder="e.g. 20"
+            value={defaultBW}
+            onChange={e => setDefaultBW(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyDefault('bW', defaultBW); } }}
+            className="set-defaults-input"
+          />
+          <button
+            className="set-defaults-apply"
+            onClick={() => applyDefault('bW', defaultBW)}
+            title="Fill all Before Width cells (Enter)"
+          >↓ Apply</button>
+        </div>
+      </div>
+
       {/* ── Sample Table ─────────────────────────────────────────────────────── */}
       <div style={{ overflowX: 'auto' }}>
         <table className="advanced-test-table">
@@ -304,7 +343,7 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
               <tr key={idx}>
                 <td><strong>#{idx + 1}</strong></td>
                 {/* col 0 = bL */}
-                <td className={idx === 0 ? 'fill-down-cell' : ''}>
+                <td>
                   <input
                     id={`adv-${idx}-0`}
                     type="number"
@@ -313,19 +352,9 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
                     onKeyDown={(e) => handleCellKeyDown(e, idx, 0)}
                     placeholder="0"
                   />
-                  {idx === 0 && fillDownVisible.bL && (
-                    <button
-                      className="fill-down-pill"
-                      onMouseDown={(e) => { e.preventDefault(); handleFillDown('bL'); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bL'); } }}
-                      title="Copy this value to all rows below (Enter)"
-                    >
-                      <i className="fas fa-arrow-down"></i> Fill Down
-                    </button>
-                  )}
                 </td>
                 {/* col 1 = bW */}
-                <td className={idx === 0 ? 'fill-down-cell' : ''}>
+                <td>
                   <input
                     id={`adv-${idx}-1`}
                     type="number"
@@ -334,16 +363,6 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
                     onKeyDown={(e) => handleCellKeyDown(e, idx, 1)}
                     placeholder="0"
                   />
-                  {idx === 0 && fillDownVisible.bW && (
-                    <button
-                      className="fill-down-pill"
-                      onMouseDown={(e) => { e.preventDefault(); handleFillDown('bW'); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFillDown('bW'); } }}
-                      title="Copy this value to all rows below (Enter)"
-                    >
-                      <i className="fas fa-arrow-down"></i> Fill Down
-                    </button>
-                  )}
                 </td>
                 {/* col 2 = aL */}
                 <td>

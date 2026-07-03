@@ -4007,3 +4007,95 @@ body {
     padding-bottom: 40px;
   }
 }
+
+/* ── Set Defaults Bar (replaces floating Fill Down pill) ─────────────────────── */
+.set-defaults-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--info-light, #e3f2fd);
+  border: 1px solid #bbdefb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.set-defaults-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary, #1976d2);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.set-defaults-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.set-defaults-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.set-defaults-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #bbdefb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  background: #fff;
+  color: var(--text-main);
+  /* Highlight on focus so keyboard users know where they are */
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.set-defaults-input:focus {
+  border-color: var(--primary, #1976d2);
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+}
+
+.set-defaults-apply {
+  padding: 6px 12px;
+  background: var(--primary, #1976d2);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  min-height: 34px;
+  font-family: inherit;
+}
+.set-defaults-apply:hover { background: var(--primary-dark, #1565c0); }
+.set-defaults-apply:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media screen and (max-width: 768px) {
+  .set-defaults-bar {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .set-defaults-input {
+    width: 70px;
+    font-size: 16px; /* prevent iOS zoom */
+    padding: 8px 8px;
+  }
+  .set-defaults-apply {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+}
