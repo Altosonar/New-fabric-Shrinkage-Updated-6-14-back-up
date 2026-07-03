@@ -2474,7 +2474,7 @@ body {
   gap: 10px;
   width: 100%;
   padding: 14px 20px;
-  margin-top: 14px;
+  margin-top: 0; /* margin handled by roll-group-actions gap */
   border: none;
   border-radius: 10px;
   font-size: 14px;
@@ -2482,6 +2482,8 @@ body {
   cursor: pointer;
   font-family: inherit;
   transition: all 0.18s;
+  box-sizing: border-box;
+  min-height: 52px;
 }
 
 .adv-next-part-btn {

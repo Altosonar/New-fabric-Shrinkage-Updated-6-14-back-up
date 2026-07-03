@@ -32,6 +32,8 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   const { addResult } = useResults();
   const { showAlert, showConfirm } = useDialog();
   const [rows, setRows] = useLocalStorage<RowData[]>('advancedTestRows_v3', defaultRows);
+  // Undo stack: stores deleted rows so the last one can be restored
+  const [deletedStack, setDeletedStack] = useState<RowData[]>([]);
   // "Set Defaults" bar — values entered above the table to bulk-fill Before columns
   const [defaultBL, setDefaultBL] = useState('');
   const [defaultBW, setDefaultBW] = useState('');
@@ -176,8 +178,17 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
   const handleDeleteRow = (rowIndex: number) => {
     setRows(prev => {
       if (prev.length <= 2) return prev; // minimum 2 rows
+      const deleted = prev[rowIndex];
+      if (deleted) setDeletedStack(stack => [...stack, deleted]);
       return prev.filter((_, i) => i !== rowIndex);
     });
+  };
+
+  const handleRestoreLast = () => {
+    if (deletedStack.length === 0) return;
+    const last = deletedStack[deletedStack.length - 1];
+    setRows(prev => [...prev, last]);
+    setDeletedStack(prev => prev.slice(0, -1));
   };
 
   const handleClearAll = () => {
@@ -418,21 +429,26 @@ export function AdvancedTest({ unit, onTransferToMain }: AdvancedTestProps) {
         </table>
       </div>
 
-      {/* ── Table action buttons (matches Roll Manager layout) ───────────────── */}
+      {/* ── Table action buttons — 2 rows matching Roll Manager layout ──────────── */}
       <div className="roll-group-actions">
+        {/* Row 1: destructive + undo */}
         <div className="roll-action-row">
           <Button variant="danger" className="clear-all-btn" icon={<i className="fas fa-trash-alt"></i>} onClick={handleClearAll}>Clear All</Button>
+          <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={handleRestoreLast} disabled={deletedStack.length === 0}>Restore Last</Button>
+        </div>
+        {/* Row 2: add + navigate */}
+        <div className="roll-action-row">
           <button className="adv-add-row-btn" style={{ margin: 0, flex: 1 }} onClick={handleAddRow}>
             <i className="fas fa-plus"></i> Add Sample
           </button>
+          <button
+            className="adv-next-part-btn"
+            style={{ flex: 1, margin: 0 }}
+            onClick={() => setAdvPart('insights')}
+          >
+            <i className="fas fa-arrow-right"></i> Apply to Pattern
+          </button>
         </div>
-        <button
-          className="adv-next-part-btn roll-add-btn"
-          style={{ width: '100%' }}
-          onClick={() => setAdvPart('insights')}
-        >
-          <i className="fas fa-arrow-right"></i> Next: Apply to Pattern
-        </button>
       </div>
       </div>{/* end adv-two-part data */}
 
