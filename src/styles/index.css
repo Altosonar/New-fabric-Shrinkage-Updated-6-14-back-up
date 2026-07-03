@@ -4107,3 +4107,221 @@ body {
     min-height: 40px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   FABRIC & WASH SPECIFICATIONS ACCORDION  — fws-* classes
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Outer accordion shell ───────────────────────────────────────────────────── */
+.fws-accordion {
+  border: 1.5px solid #bbdefb;
+  border-radius: 10px;
+  background: #f8fbff;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+/* ── Toggle button (always visible header) ───────────────────────────────────── */
+.fws-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+.fws-toggle:hover { background: #e8f4fd; }
+
+.fws-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.fws-icon {
+  color: var(--primary);
+  font-size: 14px;
+}
+.fws-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+/* ── Inline summary (shown when collapsed) ───────────────────────────────────── */
+.fws-summary {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 8px;
+  font-style: italic;
+}
+
+.fws-chevron {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-light);
+  margin-left: auto;
+}
+
+/* ── Expanded body ───────────────────────────────────────────────────────────── */
+.fws-body {
+  padding: 0 14px 14px;
+  border-top: 1px solid #bbdefb;
+}
+
+/* ── Step sections ───────────────────────────────────────────────────────────── */
+.fws-step {
+  margin-top: 14px;
+}
+.fws-step-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+.fws-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Field grid inside steps ─────────────────────────────────────────────────── */
+.fws-fields {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+.fws-wash-row {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+.fws-wash-process {
+  grid-column: span 1;
+}
+
+/* Keep input-group margin tight inside accordion */
+.fws-body .input-group {
+  margin-bottom: 0;
+}
+.fws-body .input-group input,
+.fws-body .input-group select {
+  font-size: 13px;
+  padding: 8px 10px;
+  min-height: 38px;
+}
+.fws-body .input-group label {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+/* ── Standard badge inside labels ────────────────────────────────────────────── */
+.fws-std-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* ── Auto-Fill button inside step label ──────────────────────────────────────── */
+.fws-autofill {
+  margin-left: auto !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  border-radius: 6px !important;
+  min-height: unset !important;
+}
+
+/* ── Wash tip ────────────────────────────────────────────────────────────────── */
+.fws-tip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #fff3e0;
+  border-left: 3px solid #ff9800;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #e65100;
+  line-height: 1.4;
+}
+.fws-tip i { flex-shrink: 0; margin-top: 1px; }
+
+/* ── "Done" collapse button ──────────────────────────────────────────────────── */
+.fws-collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 7px 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.fws-collapse-btn:hover { background: var(--primary-dark); }
+
+/* ── Step 3 header row (measurement heading + unit selector) ─────────────────── */
+.fws-step3-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--info-light);
+}
+.fws-step3-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* ── Mobile responsive ───────────────────────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+  .fws-wash-row { grid-template-columns: 1fr 1fr; }
+  .fws-fields { grid-template-columns: 1fr 1fr; }
+  .fws-summary { display: none; }
+  .fws-title { font-size: 12px; }
+}
+@media screen and (max-width: 480px) {
+  .fws-wash-row,
+  .fws-fields { grid-template-columns: 1fr; }
+}

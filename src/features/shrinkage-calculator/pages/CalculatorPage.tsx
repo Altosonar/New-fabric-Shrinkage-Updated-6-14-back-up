@@ -56,6 +56,7 @@ export function CalculatorPage() {
   const [washCustom, setWashCustom] = useState('');
   const [temp, setTemp] = useState('');
   const [duration, setDuration] = useState('');
+  const [drying, setDrying] = useState('');
   // Track whether temp/duration were auto-filled from wash process standard
   const [tempIsStandard, setTempIsStandard] = useState(false);
   const [durationIsStandard, setDurationIsStandard] = useState(false);
@@ -69,8 +70,8 @@ export function CalculatorPage() {
   const [showResults, setShowResults] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileStage, setMobileStage] = useState<'input' | 'results'>('input');
-  // Accordion: only wash panel remains (shrinkage form is always visible)
-  const [activeAccordion, setActiveAccordion] = useState<'wash' | null>(null);
+  // specOpen: Fabric & Wash Specifications accordion (collapsed by default after first fill)
+  const [specOpen, setSpecOpen] = useState(true);
 
   // Ref for auto-scrolling to the visualizer on desktop after Calculate
   const previewRef = useRef<HTMLDivElement>(null);
@@ -233,6 +234,7 @@ export function CalculatorPage() {
     setWashCustom('');
     setTemp('');
     setDuration('');
+    setDrying('');
     setTempIsStandard(false);
     setDurationIsStandard(false);
     setBwL('');
@@ -249,6 +251,7 @@ export function CalculatorPage() {
     setUserHasTyped(false);
     setShowResults(false);
     setMobileStage('input');
+    setSpecOpen(true);
   };
 
   // Cancel edit
@@ -425,14 +428,6 @@ export function CalculatorPage() {
           </button>
           <button
             type="button"
-            className={`sidebar-btn ${calcMode === 'wash' ? 'active' : ''}`}
-            onClick={() => setCalcMode('wash')}
-            title="Wash Process"
-          >
-            <i className="fas fa-tshirt"></i>
-          </button>
-          <button
-            type="button"
             className={`sidebar-btn ${calcMode === 'quickmath' ? 'active' : ''}`}
             onClick={() => setCalcMode('quickmath')}
             title="Quick Math"
@@ -507,14 +502,6 @@ export function CalculatorPage() {
                 </button>
                 <button
                   type="button"
-                  className={`more-drawer-btn ${calcMode === 'wash' ? 'active' : ''}`}
-                  onClick={() => { setCalcMode('wash'); setMoreOpen(false); }}
-                >
-                  <i className="fas fa-tshirt"></i>
-                  <span>Wash Process</span>
-                </button>
-                <button
-                  type="button"
                   className={`more-drawer-btn ${calcMode === 'results' ? 'active' : ''}`}
                   onClick={() => { setCalcMode('results'); setMoreOpen(false); }}
                 >
@@ -572,7 +559,7 @@ export function CalculatorPage() {
             </button>
             <button
               type="button"
-              className={`mobile-nav-btn ${moreOpen || ['wash','advanced','results'].includes(calcMode) ? 'active' : ''}`}
+              className={`mobile-nav-btn ${moreOpen || ['advanced','results'].includes(calcMode) ? 'active' : ''}`}
               onClick={() => setMoreOpen(prev => !prev)}
             >
               <i className={`fas ${moreOpen ? 'fa-times' : 'fa-bars'}`}></i>
@@ -590,8 +577,140 @@ export function CalculatorPage() {
             {/* ── PART 1: Input Stage (hidden on mobile when results shown) ── */}
             <div className={`shrinkage-part-input${mobileStage === 'results' ? ' mobile-part-hidden' : ''}`}>
             <div className="card">
-              <div className="card-title">
-                <span>1. Measurement Data</span>
+
+              {/* ── Fabric & Wash Specifications (collapsible) ───────────────── */}
+              {/* Steps 1 & 2: collapsed → inline summary; expanded → full form  */}
+              <div className="fws-accordion">
+                <button
+                  type="button"
+                  className="fws-toggle"
+                  onClick={() => setSpecOpen(v => !v)}
+                  aria-expanded={specOpen}
+                >
+                  <span className="fws-toggle-left">
+                    <i className="fas fa-layer-group fws-icon"></i>
+                    <span className="fws-title">Fabric &amp; Wash Specifications</span>
+                  </span>
+                  {!specOpen && (fabricName || wash || temp || duration || drying) && (
+                    <span className="fws-summary">
+                      {[
+                        fabricName || (fabricType !== 'Other' ? fabricType : fabricTypeCustom),
+                        wash === 'Other' ? (washCustom || 'Custom') : wash,
+                        temp,
+                        duration,
+                        drying,
+                      ].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                  <i className={`fas fa-chevron-${specOpen ? 'up' : 'down'} fws-chevron`}></i>
+                </button>
+
+                {specOpen && (
+                  <div className="fws-body">
+                    {/* ── Step 1: Fabric Identification ──────────────────────── */}
+                    <div className="fws-step">
+                      <div className="fws-step-label"><span className="fws-step-num">1</span> Fabric Identification</div>
+                      <div className="input-row split fws-fields">
+                        <div className="input-group">
+                          <label>Fabric Name / Type</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 14oz Raw Selvedge Denim"
+                            value={fabricName}
+                            onChange={e => setFabricName(e.target.value)}
+                          />
+                        </div>
+                        <div className="input-group">
+                          <label>Fiber Content / Weight</label>
+                          <select
+                            value={fabricType}
+                            onChange={e => { setFabricType(e.target.value); if (e.target.value !== 'Other') setFabricTypeCustom(''); }}
+                          >
+                            {Object.keys(fabricData).map(k => <option key={k} value={k}>{k}</option>)}
+                          </select>
+                          {fabricType === 'Other' && (
+                            <input
+                              type="text"
+                              placeholder="e.g. 100% Cotton, 12 oz"
+                              value={fabricTypeCustom}
+                              onChange={e => setFabricTypeCustom(e.target.value)}
+                              style={{ marginTop: 6 }}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── Step 2: Wash House Parameters ──────────────────────── */}
+                    <div className="fws-step">
+                      <div className="fws-step-label">
+                        <span className="fws-step-num">2</span> Wash House Parameters
+                        <button type="button" className="wash-autofill-btn fws-autofill" onClick={handleAutoFillWashParams} title="Auto-fill standard temperature & duration">
+                          <i className="fas fa-magic"></i> Auto-Fill Standards
+                        </button>
+                      </div>
+                      <div className="fws-fields fws-wash-row">
+                        <div className="input-group fws-wash-process">
+                          <label><i className="fas fa-water" style={{ color: 'var(--primary)', marginRight: 4 }}></i>Wash Process</label>
+                          <select value={wash} onChange={e => handleWashChange(e.target.value)} style={{ borderColor: 'var(--primary)', fontWeight: 500 }}>
+                            <option value="">-- Select --</option>
+                            {Array.from(new Set(washProcessOptions.map(o => o.group))).filter(Boolean).map(group => (
+                              <optgroup key={group} label={group}>
+                                {washProcessOptions.filter((o, i, arr) => o.group === group && arr.findIndex(x => x.value === o.value && x.group === group) === i).map(o => (
+                                  <option key={o.value} value={o.value}>{o.label}</option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </select>
+                          {wash === 'Other' && (
+                            <input type="text" placeholder="Custom wash/dye…" value={washCustom} onChange={e => setWashCustom(e.target.value)} style={{ marginTop: 6, borderColor: 'var(--success)' }} />
+                          )}
+                        </div>
+                        <div className="input-group">
+                          <label>
+                            Temperature
+                            {tempIsStandard && <span className="fws-std-badge">⚡ Standard</span>}
+                          </label>
+                          <input type="text" placeholder="e.g. 40°C" value={temp} onChange={e => { setTemp(e.target.value); setTempIsStandard(false); }} style={tempIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}} />
+                        </div>
+                        <div className="input-group">
+                          <label>
+                            Duration
+                            {durationIsStandard && <span className="fws-std-badge">⚡ Standard</span>}
+                          </label>
+                          <input type="text" placeholder="e.g. 45 min" value={duration} onChange={e => { setDuration(e.target.value); setDurationIsStandard(false); }} style={durationIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}} />
+                        </div>
+                        <div className="input-group">
+                          <label><i className="fas fa-wind" style={{ color: '#f57c00', marginRight: 4 }}></i>Drying Method</label>
+                          <select value={drying} onChange={e => setDrying(e.target.value)}>
+                            <option value="">-- Select --</option>
+                            <option value="Tumble Dry High">Tumble Dry High</option>
+                            <option value="Tumble Dry Low">Tumble Dry Low</option>
+                            <option value="Line Dry">Line Dry</option>
+                            <option value="Flat Dry">Flat Dry</option>
+                            <option value="Hang Dry">Hang Dry</option>
+                            <option value="Drip Dry">Drip Dry</option>
+                          </select>
+                        </div>
+                      </div>
+                      {showTip && (
+                        <div className="fws-tip">
+                          <i className="fas fa-lightbulb"></i>
+                          <span dangerouslySetInnerHTML={{ __html: tipText }} />
+                        </div>
+                      )}
+                    </div>
+
+                    <button type="button" className="fws-collapse-btn" onClick={() => setSpecOpen(false)}>
+                      <i className="fas fa-check"></i> Done — Collapse Specifications
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Step 3: Measurement Data — header row with unit selector ─── */}
+              <div className="fws-step3-header">
+                <div className="fws-step3-label"><span className="fws-step-num">3</span> Shrinkage Measurements</div>
                 <select
                   value={unit}
                   onChange={(e) => {
@@ -763,133 +882,6 @@ export function CalculatorPage() {
               hideSliders={userHasTyped}
             />
             </div>{/* end shrinkage-part-results */}
-          </div>
-        </div>
-      )}
-
-      {/* Wash Process Tab */}
-      {calcMode === 'wash' && (
-        <div id="calc-mode-wash" className="calc-mode active">
-          <div className="calc-grid" style={{ gridTemplateColumns: '1fr' }}>
-            <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <i className="fas fa-tshirt" style={{ color: 'var(--primary)', fontSize: '18px' }}></i>
-                <span>Wash Process Settings</span>
-                <button
-                  type="button"
-                  className="wash-autofill-btn"
-                  onClick={handleAutoFillWashParams}
-                  title="Auto-fill standard temperature & duration for selected wash process"
-                  style={{ marginLeft: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', background: 'var(--secondary)', color: 'var(--text-light)' }}
-                >
-                  <i className="fas fa-magic"></i> Auto-Fill Standards
-                </button>
-              </div>
-
-              <div className="input-row" style={{ marginBottom: '16px' }}>
-                <div className="input-group">
-                  <label><i className="fas fa-water" style={{ color: 'var(--primary)' }}></i> Wash Process</label>
-                  <select
-                    value={wash}
-                    onChange={(e) => handleWashChange(e.target.value)}
-                    style={{ borderColor: 'var(--primary)', fontWeight: '500' }}
-                  >
-                    {Array.from(new Set(washProcessOptions.map(opt => opt.group))).filter(Boolean).map((group) => (
-                      <optgroup key={group} label={group}>
-                        {washProcessOptions
-                          .filter((opt, i, arr) => opt.group === group && arr.findIndex(o => o.value === opt.value && o.group === group) === i)
-                          .map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                  {wash === 'Other' && (
-                    <input
-                      type="text"
-                      placeholder="Type your custom wash/dye here..."
-                      value={washCustom}
-                      onChange={(e) => setWashCustom(e.target.value)}
-                      style={{ display: 'block', marginTop: '10px', borderColor: 'var(--success)' }}
-                    />
-                  )}
-                  {showTip && (
-                    <div id="smart-wash-tip" style={{ display: 'block', marginTop: '10px' }}>
-                      <i className="fas fa-lightbulb"></i> <span>{tipText}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="input-row split">
-                <Input
-                  label={
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      Temperature
-                      {tempIsStandard && (
-                        <span style={{
-                          fontSize: '10px', fontWeight: 700,
-                          background: 'linear-gradient(135deg, #1565c0, #1976d2)',
-                          color: '#fff', padding: '1px 6px', borderRadius: '10px',
-                          letterSpacing: '0.3px', whiteSpace: 'nowrap',
-                        }}>⚡ Standard</span>
-                      )}
-                    </span>
-                  }
-                  placeholder="e.g. 40°C or Cold"
-                  value={temp}
-                  onChange={(e) => { setTemp(e.target.value); setTempIsStandard(false); }}
-                  style={tempIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}}
-                />
-                <Input
-                  label={
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      Duration
-                      {durationIsStandard && (
-                        <span style={{
-                          fontSize: '10px', fontWeight: 700,
-                          background: 'linear-gradient(135deg, #1565c0, #1976d2)',
-                          color: '#fff', padding: '1px 6px', borderRadius: '10px',
-                          letterSpacing: '0.3px', whiteSpace: 'nowrap',
-                        }}>⚡ Standard</span>
-                      )}
-                    </span>
-                  }
-                  placeholder="e.g. 45 mins"
-                  value={duration}
-                  onChange={(e) => { setDuration(e.target.value); setDurationIsStandard(false); }}
-                  style={durationIsStandard ? { borderColor: '#1976d2', backgroundColor: '#f0f7ff' } : {}}
-                />
-              </div>
-
-              {wash && wash !== '' && (
-                <div style={{ marginTop: '20px', padding: '14px', background: 'var(--info-light)', borderRadius: '10px', border: '1px solid #bbdefb' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    <i className="fas fa-info-circle"></i> Current Selection
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>
-                    {wash === 'Other' ? (washCustom || 'Custom Wash') : (wash || 'None selected')}
-                  </div>
-                  {(temp || duration) && (
-                    <div style={{ display: 'flex', gap: '20px', marginTop: '10px', flexWrap: 'wrap' }}>
-                      {temp && <div style={{ fontSize: '13px', color: 'var(--text-light)' }}><i className="fas fa-thermometer-half" style={{ color: 'var(--primary)' }}></i> {temp}</div>}
-                      {duration && <div style={{ fontSize: '13px', color: 'var(--text-light)' }}><i className="fas fa-clock" style={{ color: 'var(--primary)' }}></i> {duration}</div>}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div style={{ marginTop: '20px' }}>
-                <Button
-                  variant="primary"
-                  style={{ width: '100%', padding: '14px', fontSize: '15px' }}
-                  onClick={() => setCalcMode('shrinkage')}
-                  icon={<i className="fas fa-arrow-left"></i>}
-                >
-                  Back to Shrinkage
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       )}
