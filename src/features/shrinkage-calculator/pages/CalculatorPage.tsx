@@ -76,8 +76,8 @@ export function CalculatorPage() {
   // Ref for auto-scrolling to the visualizer on desktop after Calculate
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Save modal state
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  // Auto-save toast state (replaces modal)
+  const [saveToast, setSaveToast] = useState<'idle' | 'saving' | 'done'>('idle');
   const [fabricType, setFabricType] = useState('Denim');
   const [fabricTypeCustom, setFabricTypeCustom] = useState('');
   const [fabricName, setFabricName] = useState('');
@@ -180,30 +180,21 @@ export function CalculatorPage() {
     recalculate(bwW || defaultSize, newAwW, bwL || defaultSize, awL);
   }, [bwW, bwL, awL, unit, recalculate]);
 
-  // Open save modal
-  const openSaveModal = () => {
+  // Direct save — no modal; fabric metadata already in Step 1 of the spec panel
+  const handleDirectSave = () => {
     if (!bwW && !awW && !bwL && !awL) {
-      showAlert("Please enter measurements and click 'Calculate Shrinkage' before saving.", 'Missing Data');
+      showAlert("Please enter measurements and click Calculate Shrinkage first.", 'Missing Data');
       return;
     }
     handleCalculate();
-    setSaveModalOpen(true);
-  };
-
-  // Save result
-  const handleSave = () => {
-    if (!fabricName) {
-      showAlert('Please enter a Specific Fabric Name to save.');
-      return;
-    }
-
     const finalWash = wash === 'Other' ? (washCustom || 'Custom Wash') : (wash || 'Not specified');
     const finalType = fabricType === 'Other' ? (fabricTypeCustom || 'Custom Category') : fabricType;
+    const saveName = fabricName || finalType;
 
     const result: FabricResult = {
       id: editingId || Date.now(),
       type: finalType,
-      name: fabricName,
+      name: saveName,
       wash: finalWash,
       temp: temp || undefined,
       duration: duration || undefined,
@@ -224,8 +215,10 @@ export function CalculatorPage() {
       addResult(result);
     }
 
-    setSaveModalOpen(false);
-    resetForm();
+    // Show toast, then reset after delay
+    setSaveToast('saving');
+    setTimeout(() => setSaveToast('done'), 300);
+    setTimeout(() => { setSaveToast('idle'); resetForm(); }, 2200);
   };
 
   // Reset form
@@ -269,14 +262,14 @@ export function CalculatorPage() {
         // Ignore storage errors
       }
     };
-    const onOpenSave = () => openSaveModal();
+    const onOpenSave = () => handleDirectSave();
     window.addEventListener('clear-all', onClear as EventListener);
     window.addEventListener('open-save-modal', onOpenSave as EventListener);
     return () => {
       window.removeEventListener('clear-all', onClear as EventListener);
       window.removeEventListener('open-save-modal', onOpenSave as EventListener);
     };
-  }, [resetForm, openSaveModal]);
+  }, [resetForm, handleDirectSave]);
 
   // Track current view mode for smart print
   useEffect(() => {
@@ -607,36 +600,50 @@ export function CalculatorPage() {
 
                 {specOpen && (
                   <div className="fws-body">
-                    {/* ── Step 1: Fabric Identification ──────────────────────── */}
+                    {/* ── Step 1: Fabric Identification (dependent dropdowns) ── */}
                     <div className="fws-step">
                       <div className="fws-step-label"><span className="fws-step-num">1</span> Fabric Identification</div>
-                      <div className="input-row split fws-fields">
+                      <div className="fws-fields fws-fabric-row">
+                        {/* Field A: Category dropdown */}
                         <div className="input-group">
-                          <label>Fabric Name / Type</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 14oz Raw Selvedge Denim"
-                            value={fabricName}
-                            onChange={e => setFabricName(e.target.value)}
-                          />
-                        </div>
-                        <div className="input-group">
-                          <label>Fiber Content / Weight</label>
+                          <label>Fabric Category (Type)</label>
                           <select
                             value={fabricType}
-                            onChange={e => { setFabricType(e.target.value); if (e.target.value !== 'Other') setFabricTypeCustom(''); }}
+                            onChange={e => {
+                              setFabricType(e.target.value);
+                              setFabricName(''); // clear specific name when category changes
+                              if (e.target.value !== 'Other') setFabricTypeCustom('');
+                            }}
+                            style={{ borderColor: 'var(--primary)', fontWeight: 600 }}
                           >
                             {Object.keys(fabricData).map(k => <option key={k} value={k}>{k}</option>)}
                           </select>
                           {fabricType === 'Other' && (
                             <input
                               type="text"
-                              placeholder="e.g. 100% Cotton, 12 oz"
+                              placeholder="Custom category…"
                               value={fabricTypeCustom}
                               onChange={e => setFabricTypeCustom(e.target.value)}
                               style={{ marginTop: 6 }}
                             />
                           )}
+                        </div>
+                        {/* Field B: Specific name combobox — options driven by Field A */}
+                        <div className="input-group">
+                          <label>Specific Fabric Name</label>
+                          <input
+                            type="text"
+                            list="fws-fabric-names"
+                            placeholder="Select or type a name…"
+                            value={fabricName}
+                            onChange={e => setFabricName(e.target.value)}
+                            style={{ borderColor: '#bbdefb' }}
+                          />
+                          <datalist id="fws-fabric-names">
+                            {(fabricData[fabricType] || []).map(fab => (
+                              <option key={fab} value={fab} />
+                            ))}
+                          </datalist>
                         </div>
                       </div>
                     </div>
@@ -826,10 +833,12 @@ export function CalculatorPage() {
                   <Button
                     variant="success"
                     style={{ width: '100%', padding: '15px', fontSize: '16px' }}
-                    onClick={openSaveModal}
-                    icon={<i className="fas fa-save"></i>}
+                    onClick={handleDirectSave}
+                    icon={<i className={`fas ${saveToast === 'done' ? 'fa-check-circle' : 'fa-save'}`}></i>}
+                    disabled={saveToast !== 'idle'}
                   >
-                    Save Result
+                    {saveToast === 'idle' ? (editingId ? 'Update Library' : 'Save to Library') :
+                     saveToast === 'saving' ? 'Saving…' : '✓ Saved!'}
                   </Button>
                 )}
               </div>
@@ -938,61 +947,13 @@ export function CalculatorPage() {
         </div>
       )}
 
-      {/* Save Modal */}
-      <Modal
-        isOpen={saveModalOpen}
-        onClose={() => setSaveModalOpen(false)}
-        title={editingId ? "Update Shrinkage Result" : "Save Shrinkage Result"}
-      >
-        <div className="input-group">
-          <label>Fabric Category (Type)</label>
-          <select value={fabricType} onChange={(e) => setFabricType(e.target.value)}>
-            {Object.keys(fabricData).map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-          {fabricType === 'Other' && (
-            <input
-              type="text"
-              placeholder="Type your custom category..."
-              value={fabricTypeCustom}
-              onChange={(e) => setFabricTypeCustom(e.target.value)}
-              style={{ display: 'block', marginTop: '10px', borderColor: 'var(--primary)' }}
-            />
-          )}
+      {/* Auto-save success toast */}
+      {saveToast !== 'idle' && (
+        <div className={`save-toast${saveToast === 'done' ? ' save-toast-done' : ''}`}>
+          <i className="fas fa-check-circle"></i>
+          <span>{editingId ? 'Result updated in Library' : 'Saved to Library'}</span>
         </div>
-
-        <div className="input-group">
-          <label>Specific Fabric Name</label>
-          <input
-            type="text"
-            list="popularFabrics"
-            placeholder="e.g. 14oz Japanese Selvedge or choose from list"
-            value={fabricName}
-            onChange={(e) => setFabricName(e.target.value)}
-          />
-          <datalist id="popularFabrics">
-            {(fabricData[fabricType] || []).map(fab => (
-              <option key={fab} value={fab} />
-            ))}
-          </datalist>
-        </div>
-
-        <div style={{ background: 'var(--secondary)', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-light)', marginBottom: '5px' }}>Calculation verified:</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '14px' }}>
-            <span>Length (L): <span style={{ color: 'var(--primary)' }}>{lDisplay.text}</span></span>
-            <span>Width (W): <span style={{ color: 'var(--primary)' }}>{wDisplay.text}</span></span>
-          </div>
-        </div>
-
-        <div className="modal-actions">
-          <Button variant="outline" onClick={() => setSaveModalOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave}>
-            {editingId ? 'Update Library' : 'Save to Library'}
-          </Button>
-        </div>
-      </Modal>
+      )}
     </div>
   );
 }

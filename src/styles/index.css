@@ -4325,3 +4325,60 @@ body {
   .fws-wash-row,
   .fws-fields { grid-template-columns: 1fr; }
 }
+
+/* ── Auto-save success toast ─────────────────────────────────────────────────── */
+.save-toast {
+  position: fixed;
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #1b5e20;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 8px 28px rgba(27, 94, 32, 0.45);
+  z-index: 9998;
+  /* Start from bottom, small and transparent */
+  opacity: 0;
+  transform: translateY(16px) scale(0.9);
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Done state: spring in */
+.save-toast.save-toast-done {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.save-toast i {
+  font-size: 18px;
+  color: #a5d6a7;
+}
+
+/* Floating +1 badge anchored to the save button */
+@keyframes float-up-fade {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  60%  { opacity: 1; transform: translateY(-36px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-64px) scale(0.8); }
+}
+
+/* Saved button pulse */
+@keyframes saved-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6); }
+  70%  { box-shadow: 0 0 0 12px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+/* fws-fabric-row: same 2-col grid as other fws-fields but labelled differently */
+.fws-fabric-row {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media screen and (max-width: 480px) {
+  .fws-fabric-row { grid-template-columns: 1fr; }
+  .save-toast { right: 12px; left: 12px; justify-content: center; }
+}
