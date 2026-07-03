@@ -452,7 +452,7 @@ export function ResultsPage() {
     addFolder, deleteFolder, addTag, deleteTag,
     assignResultTag, removeResultTag, assignResultFolder,
     toggleSelect, selectAll, clearSelection, bulkDelete, bulkExport,
-    restoreLastDeleted
+    restoreLastDeleted, restoreAllDeleted
   } = useResults();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -588,6 +588,11 @@ export function ResultsPage() {
             {state.lastDeleted && (
               <Button variant="outline" icon={<i className="fas fa-undo"></i>} onClick={restoreLastDeleted}>Restore Last</Button>
             )}
+            {state.deletedAllSnapshot && state.deletedAllSnapshot.length > 0 && (
+              <Button variant="outline" icon={<i className="fas fa-history"></i>} onClick={restoreAllDeleted}>
+                Restore All ({state.deletedAllSnapshot.length})
+              </Button>
+            )}
             <Button variant="outline" icon={<i className="fas fa-download"></i>} onClick={handleExport}>Export</Button>
             <label className="btn btn-outline" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 6, border: '1px solid var(--border-color)', fontWeight: 600, fontSize: 13 }}>
               <i className="fas fa-upload"></i> Import
@@ -616,6 +621,11 @@ export function ResultsPage() {
                 {state.lastDeleted && (
                   <button className="res-overflow-item" onClick={() => { restoreLastDeleted(); setShowOverflow(false); }}>
                     <i className="fas fa-undo"></i> Restore Last Deleted
+                  </button>
+                )}
+                {state.deletedAllSnapshot && state.deletedAllSnapshot.length > 0 && (
+                  <button className="res-overflow-item" onClick={() => { restoreAllDeleted(); setShowOverflow(false); }}>
+                    <i className="fas fa-history"></i> Restore All ({state.deletedAllSnapshot.length})
                   </button>
                 )}
                 <div className="res-overflow-divider" />

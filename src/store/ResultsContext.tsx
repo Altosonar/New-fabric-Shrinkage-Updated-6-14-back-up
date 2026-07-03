@@ -15,6 +15,9 @@ interface ResultsState {
   tags: Tag[];
   selectedIds: Set<number>;
   lastDeleted: SavedResult | null;
+  deletedAllSnapshot: SavedResult[];
+  lastDeletedFolder: import('../types').Folder | null;
+  lastDeletedTag: import('../types').Tag | null;
 }
 
 // Action types
@@ -25,13 +28,16 @@ type ResultsAction =
   | { type: 'DELETE_RESULT'; payload: number }
   | { type: 'DELETE_ALL' }
   | { type: 'RESTORE_LAST' }
+  | { type: 'RESTORE_ALL' }
   | { type: 'SET_EDITING_ID'; payload: number | null }
   | { type: 'SET_UNIT'; payload: Unit }
   | { type: 'IMPORT_RESULTS'; payload: SavedResult[] }
   | { type: 'ADD_FOLDER'; payload: Folder }
   | { type: 'DELETE_FOLDER'; payload: string }
+  | { type: 'RESTORE_FOLDER' }
   | { type: 'ADD_TAG'; payload: Tag }
   | { type: 'DELETE_TAG'; payload: string }
+  | { type: 'RESTORE_TAG' }
   | { type: 'TOGGLE_SELECT'; payload: number }
   | { type: 'SELECT_ALL'; payload: number[] }
   | { type: 'CLEAR_SELECTION' }
@@ -50,6 +56,9 @@ const initialState: ResultsState = {
   tags: [],
   selectedIds: new Set(),
   lastDeleted: null,
+  deletedAllSnapshot: [],
+  lastDeletedFolder: null,
+  lastDeletedTag: null,
 };
 
 // Load initial results from localStorage
@@ -122,7 +131,13 @@ function resultsReducer(state: ResultsState, action: ResultsAction): ResultsStat
       
     case 'DELETE_ALL':
       localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
-      return { ...state, results: [] };
+      return { ...state, results: [], deletedAllSnapshot: [...state.results] };
+
+    case 'RESTORE_ALL': {
+      if (!state.deletedAllSnapshot.length) return state;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.deletedAllSnapshot));
+      return { ...state, results: [...state.deletedAllSnapshot], deletedAllSnapshot: [] };
+    }
       
     case 'SET_EDITING_ID':
       return { ...state, editingId: action.payload };
@@ -140,13 +155,20 @@ function resultsReducer(state: ResultsState, action: ResultsAction): ResultsStat
       return { ...state, folders: newFolders };
     }
     case 'DELETE_FOLDER': {
+      const deletedF = state.folders.find(f => f.id === action.payload) || null;
       const newFolders = state.folders.filter(f => f.id !== action.payload);
       localStorage.setItem(FOLDERS_KEY, JSON.stringify(newFolders));
       const newResults = state.results.map(r =>
         r.folderId === action.payload ? { ...r, folderId: undefined } : r
       );
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
-      return { ...state, folders: newFolders, results: newResults };
+      return { ...state, folders: newFolders, results: newResults, lastDeletedFolder: deletedF };
+    }
+    case 'RESTORE_FOLDER': {
+      if (!state.lastDeletedFolder) return state;
+      const restoredFolders = [...state.folders, state.lastDeletedFolder];
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(restoredFolders));
+      return { ...state, folders: restoredFolders, lastDeletedFolder: null };
     }
     case 'ADD_TAG': {
       const newTags = [...state.tags, action.payload];
@@ -154,6 +176,7 @@ function resultsReducer(state: ResultsState, action: ResultsAction): ResultsStat
       return { ...state, tags: newTags };
     }
     case 'DELETE_TAG': {
+      const deletedT = state.tags.find(t => t.id === action.payload) || null;
       const newTags = state.tags.filter(t => t.id !== action.payload);
       localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
       const newResults = state.results.map(r => ({
@@ -161,7 +184,13 @@ function resultsReducer(state: ResultsState, action: ResultsAction): ResultsStat
         tags: (r.tags || []).filter((tid: string) => tid !== action.payload)
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newResults));
-      return { ...state, tags: newTags, results: newResults };
+      return { ...state, tags: newTags, results: newResults, lastDeletedTag: deletedT };
+    }
+    case 'RESTORE_TAG': {
+      if (!state.lastDeletedTag) return state;
+      const restoredTags = [...state.tags, state.lastDeletedTag];
+      localStorage.setItem(TAGS_KEY, JSON.stringify(restoredTags));
+      return { ...state, tags: restoredTags, lastDeletedTag: null };
     }
     case 'TOGGLE_SELECT': {
       const next = new Set(state.selectedIds);
@@ -227,6 +256,7 @@ interface ResultsContextType {
   updateResult: (result: SavedResult) => void;
   deleteResult: (id: number) => void;
   restoreLastDeleted: () => void;
+  restoreAllDeleted: () => void;
   deleteAll: () => void;
   importResults: (results: SavedResult[]) => void;
   exportResults: () => string;
@@ -235,8 +265,10 @@ interface ResultsContextType {
   // Folder & Tag helpers
   addFolder: (folder: Folder) => void;
   deleteFolder: (id: string) => void;
+  restoreLastFolder: () => void;
   addTag: (tag: Tag) => void;
   deleteTag: (id: string) => void;
+  restoreLastTag: () => void;
   assignResultTag: (resultId: number, tagId: string) => void;
   removeResultTag: (resultId: number, tagId: string) => void;
   assignResultFolder: (resultId: number, folderId: string | undefined) => void;
@@ -292,6 +324,10 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
     dispatch({ type: 'RESTORE_LAST' });
   };
 
+  const restoreAllDeleted = () => {
+    dispatch({ type: 'RESTORE_ALL' });
+  };
+
   const { showConfirm } = useDialog();
 
   const deleteAll = () => {
@@ -321,8 +357,10 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
   // Folder & Tag helpers
   const addFolder = (folder: Folder) => dispatch({ type: 'ADD_FOLDER', payload: folder });
   const deleteFolder = (id: string) => dispatch({ type: 'DELETE_FOLDER', payload: id });
+  const restoreLastFolder = () => dispatch({ type: 'RESTORE_FOLDER' });
   const addTag = (tag: Tag) => dispatch({ type: 'ADD_TAG', payload: tag });
   const deleteTag = (id: string) => dispatch({ type: 'DELETE_TAG', payload: id });
+  const restoreLastTag = () => dispatch({ type: 'RESTORE_TAG' });
   const assignResultTag = (resultId: number, tagId: string) => dispatch({ type: 'ASSIGN_RESULT_TAG', payload: { resultId, tagId } });
   const removeResultTag = (resultId: number, tagId: string) => dispatch({ type: 'REMOVE_RESULT_TAG', payload: { resultId, tagId } });
   const assignResultFolder = (resultId: number, folderId: string | undefined) => dispatch({ type: 'ASSIGN_RESULT_FOLDER', payload: { resultId, folderId } });
@@ -371,14 +409,17 @@ export function ResultsProvider({ children }: ResultsProviderProps) {
     updateResult,
     deleteResult,
     restoreLastDeleted,
+    restoreAllDeleted,
     importResults,
     exportResults,
     setEditingId,
     setUnit,
     addFolder,
     deleteFolder,
+    restoreLastFolder,
     addTag,
     deleteTag,
+    restoreLastTag,
     assignResultTag,
     removeResultTag,
     assignResultFolder,

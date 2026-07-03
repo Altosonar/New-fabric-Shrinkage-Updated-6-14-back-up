@@ -287,7 +287,7 @@ function DataTab({ settings, updateSetting }: {
   settings: AppSettings;
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
 }) {
-  const { state, deleteFolder, deleteTag, renameFolder, renameTag } = useResults();
+  const { state, deleteFolder, deleteTag, renameFolder, renameTag, restoreLastFolder, restoreLastTag } = useResults();
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renamingTag, setRenamingTag] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState('');
@@ -323,7 +323,12 @@ function DataTab({ settings, updateSetting }: {
         <div className="stg-taxonomy-grid">
           <div className="stg-taxonomy-col">
             <div className="stg-taxonomy-header"><i className="fas fa-folder"></i> Folders ({state.folders.length})</div>
-            {state.folders.length === 0 && <div className="stg-empty">No folders created yet.</div>}
+            {state.lastDeletedFolder && (
+              <button className="stg-btn stg-btn-outline" style={{ width: '100%', marginBottom: 8, justifyContent: 'center', gap: 6 }} onClick={restoreLastFolder}>
+                <i className="fas fa-undo"></i> Restore "{state.lastDeletedFolder.name}"
+              </button>
+            )}
+            {state.folders.length === 0 && !state.lastDeletedFolder && <div className="stg-empty">No folders created yet.</div>}
             {state.folders.map(f => (
               <div key={f.id} className="stg-taxonomy-item">
                 {renamingFolder === f.id ? (
@@ -355,7 +360,12 @@ function DataTab({ settings, updateSetting }: {
           </div>
           <div className="stg-taxonomy-col">
             <div className="stg-taxonomy-header"><i className="fas fa-tags"></i> Tags ({state.tags.length})</div>
-            {state.tags.length === 0 && <div className="stg-empty">No tags created yet.</div>}
+            {state.lastDeletedTag && (
+              <button className="stg-btn stg-btn-outline" style={{ width: '100%', marginBottom: 8, justifyContent: 'center', gap: 6 }} onClick={restoreLastTag}>
+                <i className="fas fa-undo"></i> Restore "#{state.lastDeletedTag.label}"
+              </button>
+            )}
+            {state.tags.length === 0 && !state.lastDeletedTag && <div className="stg-empty">No tags created yet.</div>}
             {state.tags.map(t => (
               <div key={t.id} className="stg-taxonomy-item">
                 {renamingTag === t.id ? (
